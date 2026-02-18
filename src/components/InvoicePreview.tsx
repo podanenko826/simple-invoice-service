@@ -1,4 +1,3 @@
-import { Card } from "react-bootstrap";
 import type { InvoiceTemplate } from "../types/invoice";
 import "./InvoicePreview.css";
 import { currencySymbols } from "../lib/currencySymbols";
@@ -16,8 +15,8 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
     dueDate.setDate(dueDate.getDate() + days);
 
     const formatDate = (d: Date) =>
-        d.toLocaleDateString("en-US", {
-            month: "short",
+        d.toLocaleDateString("en-CA", {
+            month: "numeric",
             day: "numeric",
             year: "numeric",
         });
@@ -33,13 +32,29 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
             </div>
 
             {/* A4-like preview */}
-            <Card className="invoice-preview-card">
-                <Card.Body className="p-4 p-md-5">
+            <div className="card invoice-preview-card">
+                <div className="card-body p-4 p-md-5">
                     {/* Top row: Issuer + INVOICE title */}
                     <div className="d-flex justify-content-between align-items-start mb-4">
                         <div>
-                            <p className="fs-5 fw-bold mb-1">
-                                {template.issuer_name || "Your Company"}
+                            <h2 className="invoice-title mb-1">INVOICE</h2>
+                            <p className="text-muted small fw-medium">
+                                #{invoiceNumber}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Divider */}
+                    <hr className="my-4" />
+
+                    {/* Bill To + Date */}
+                    <div className="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <p className="preview-section-label text-muted">
+                                FROM
+                            </p>
+                            <p className="fw-bold mb-1">
+                                {template.issuer_name || "Issuer Name"}
                             </p>
                             {template.issuer_address
                                 ?.split("\n")
@@ -51,27 +66,19 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                                         {line}
                                     </p>
                                 ))}
-                            {template.issuer_email && (
+                            <p className="text-muted small mb-0">
+                                {template.issuer_email || "Issuer Email"}
+                            </p>
+                            {template.issuer_tax_id && (
                                 <p className="text-muted small mb-0">
-                                    {template.issuer_email}
+                                    Tax ID: {template.issuer_tax_id}
                                 </p>
                             )}
                         </div>
-                        <div className="text-end">
-                            <h2 className="invoice-title mb-1">INVOICE</h2>
-                            <p className="text-muted small fw-medium">
-                                Invoice# {invoiceNumber}
+                        <div className="flex-end">
+                            <p className="preview-section-label text-muted">
+                                TO
                             </p>
-                        </div>
-                    </div>
-
-                    {/* Divider */}
-                    <hr className="my-4" />
-
-                    {/* Bill To + Date */}
-                    <div className="d-flex justify-content-between align-items-start mb-4">
-                        <div>
-                            <p className="preview-section-label">BILL TO</p>
                             <p className="fw-bold mb-1">
                                 {template.client_name || "Client Name"}
                             </p>
@@ -80,62 +87,63 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                                 .map((line, i) => (
                                     <p
                                         key={i}
-                                        className="text-muted small mb-0"
+                                        className="text-muted small mb-4"
                                     >
                                         {line}
                                     </p>
                                 ))}
                             {template.client_tax_id && (
                                 <p className="text-muted small mb-0">
-                                    {template.client_tax_id}
+                                    Tax ID: {template.client_tax_id}
                                 </p>
                             )}
                         </div>
-                        <div className="text-end">
-                            <div className="d-flex align-items-center gap-3 justify-content-end mb-2">
-                                <span className="text-muted small">
-                                    Invoice Date:
-                                </span>
-                                <span className="small fw-bold text-primary">
-                                    {formatDate(today)}
-                                </span>
-                            </div>
-                            <div className="d-flex align-items-center gap-3 justify-content-end">
-                                <span className="text-muted small">
-                                    Due Date:
-                                </span>
-                                <span className="small fw-bold">
-                                    {formatDate(dueDate)}
-                                </span>
-                            </div>
+                    </div>
+
+                    {/* Divider */}
+                    <hr className="my-4" />
+
+                    <div className="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <p className="small text-muted mb-0">
+                                Invoice Date
+                            </p>
+                            <p className="fw-bold mb-1">{formatDate(today)}</p>
+                        </div>
+                        <div>
+                            <p className="small text-muted mb-0">Due Date</p>
+                            <p className="fw-bold mb-1">
+                                {formatDate(dueDate)}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="small text-muted mb-0">Amount Due</p>
+                            <p className="fw-bold mb-1">
+                                {symbol}
+                                {amount.toLocaleString("en-US", {
+                                    minimumFractionDigits: 2,
+                                })}
+                            </p>
                         </div>
                     </div>
 
                     {/* Line items table */}
                     <div className="invoice-table mb-4">
                         <div className="invoice-table-header">
-                            <div className="row g-0">
-                                <div className="col-1">#</div>
-                                <div className="col-7">Item & Description</div>
-                                <div className="col-2 text-end">Rate</div>
-                                <div className="col-2 text-end">Amount</div>
+                            <div className="row g-0 align-items-bottom">
+                                <div className="col-7">Description</div>
+                                <div className="col-5 text-end">Amount</div>
                             </div>
                         </div>
                         <div className="invoice-table-body">
                             <div className="row g-0 align-items-center">
-                                <div className="col-1 text-muted">1</div>
                                 <div className="col-7">
                                     <p className="fw-semibold mb-0">
                                         {template.description ||
                                             "Service description"}
                                     </p>
                                 </div>
-                                <div className="col-2 text-end">
-                                    {amount.toLocaleString("en-US", {
-                                        minimumFractionDigits: 2,
-                                    })}
-                                </div>
-                                <div className="col-2 text-end fw-bold">
+                                <div className="col-5 text-end fw-bold">
                                     {symbol}
                                     {amount.toLocaleString("en-US", {
                                         minimumFractionDigits: 2,
@@ -147,8 +155,10 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
 
                     {/* Total */}
                     <div className="d-flex justify-content-end border-top pt-3 mb-4">
-                        <div className="d-flex align-items-center gap-4">
-                            <span className="fw-bold">Total</span>
+                        <div className="d-flex flex-column align-items-end">
+                            <span className="preview-section-label text-muted fw-bold">
+                                Total
+                            </span>
                             <span className="invoice-total">
                                 {symbol}
                                 {amount.toLocaleString("en-US", {
@@ -161,11 +171,11 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                     {/* Payment details */}
                     {(template.bank_name || template.iban) && (
                         <div className="pt-3 border-top">
-                            <p className="preview-section-label">
+                            <p className="preview-section-label text-muted">
                                 PAYMENT DETAILS
                             </p>
                             {template.bank_name && (
-                                <p className="small mb-1">
+                                <p className="small mb-0">
                                     Bank:{" "}
                                     <span className="fw-medium">
                                         {template.bank_name}
@@ -173,7 +183,7 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                                 </p>
                             )}
                             {template.iban && (
-                                <p className="small mb-1">
+                                <p className="small mb-0">
                                     IBAN:{" "}
                                     <span className="fw-medium">
                                         {template.iban}
@@ -181,7 +191,7 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                                 </p>
                             )}
                             {template.swift_bic && (
-                                <p className="small mb-1">
+                                <p className="small mb-0">
                                     SWIFT/BIC:{" "}
                                     <span className="fw-medium">
                                         {template.swift_bic}
@@ -189,14 +199,14 @@ const InvoicePreview = ({ template }: InvoicePreviewProps) => {
                                 </p>
                             )}
                             {template.payment_terms && (
-                                <p className="text-muted small mt-2 mb-0">
+                                <p className="small mt-2 mb-0">
                                     {template.payment_terms}
                                 </p>
                             )}
                         </div>
                     )}
-                </Card.Body>
-            </Card>
+                </div>
+            </div>
         </div>
     );
 };

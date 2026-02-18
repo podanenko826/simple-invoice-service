@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Form, Button, Card, Alert, Spinner } from "react-bootstrap";
-import type { InvoiceTemplate } from "../types/invoice";
+import type { InvoiceTemplate, Invoice } from "../types/invoice";
+import { generateInvoicePdf } from "../lib/generatePdf";
 import { currencySymbols } from "../lib/currencySymbols";
 
 const GenerateInvoice = () => {
@@ -57,11 +58,23 @@ const GenerateInvoice = () => {
         if (!template) return;
         setGenerating(true);
 
-        // Mock PDF generation - replace with actual implementation
-        setTimeout(() => {
-            alert(`Invoice ${invoiceNumber} generated successfully!`);
+        try {
+            const invoice: Invoice = {
+                invoice_number: invoiceNumber,
+                invoice_date: invoiceDate,
+                due_date: dueDate,
+                amount,
+                currency: template.currency,
+                notes,
+            };
+
+            const doc = generateInvoicePdf(template, invoice);
+            doc.save(`invoice-${invoiceNumber}.pdf`);
+        } catch (error) {
+            alert(`Error generating PDF: ${error}`);
+        } finally {
             setGenerating(false);
-        }, 1000);
+        }
     };
 
     if (loading) {

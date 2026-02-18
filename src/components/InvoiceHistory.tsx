@@ -1,45 +1,22 @@
 import { useState, useEffect } from "react";
 import { Card, Spinner, Alert } from "react-bootstrap";
 import type { Invoice } from "../types/invoice";
+import { loadInvoices } from "../lib/storage";
 import { currencySymbols } from "../lib/currencySymbols";
 
 const InvoiceHistory = () => {
     const [invoices, setInvoices] = useState<Invoice[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const loadInvoices = async () => {
-        // Mock data - replace with actual API call
-        const mockInvoices: Invoice[] = [
-            {
-                id: "1",
-                invoice_number: "INV-202602",
-                invoice_date: "2026-02-01",
-                due_date: "2026-02-15",
-                amount: 5000,
-                currency: "EUR",
-                notes: "",
-                created_at: "2026-02-01T10:00:00Z",
-            },
-            {
-                id: "2",
-                invoice_number: "INV-202601",
-                invoice_date: "2026-01-01",
-                due_date: "2026-01-15",
-                amount: 5000,
-                currency: "EUR",
-                notes: "",
-                created_at: "2026-01-01T10:00:00Z",
-            },
-        ];
-
-        setTimeout(() => {
-            setInvoices(mockInvoices);
-            setLoading(false);
-        }, 500);
+    const loadInvoicesData = async () => {
+        const savedInvoices = loadInvoices();
+        setInvoices(savedInvoices);
+        setLoading(false);
     };
 
     useEffect(() => {
-        loadInvoices();
+        loadInvoicesData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     if (loading) {

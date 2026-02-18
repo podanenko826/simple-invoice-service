@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Form, Button, Card, Spinner } from "react-bootstrap";
 import InvoicePreview from "./InvoicePreview";
 import type { InvoiceTemplate } from "../types/invoice";
+import { saveTemplate, loadTemplate } from "../lib/storage";
 import { currencySymbols } from "../lib/currencySymbols";
 
 const defaultTemplate: InvoiceTemplate = {
@@ -26,25 +27,39 @@ const TemplateForm = () => {
     const [template, setTemplate] = useState<InvoiceTemplate>(defaultTemplate);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [saveSuccess, setSaveSuccess] = useState(false);
+    const [saveError, setSaveError] = useState<string | null>(null);
 
-    const loadTemplate = async () => {
-        // Mock loading - replace with actual API call
-        setTimeout(() => {
-            setLoading(false);
-        }, 500);
+    const loadTemplateData = async () => {
+        const savedTemplate = loadTemplate();
+        if (savedTemplate) {
+            setTemplate(savedTemplate);
+        }
+        setLoading(false);
     };
 
     useEffect(() => {
-        loadTemplate();
+        loadTemplateData();
     }, []);
 
     const handleSave = async () => {
         setSaving(true);
-        // Mock save - replace with actual API call
-        setTimeout(() => {
-            alert("Template saved successfully!");
+        setSaveSuccess(false);
+        setSaveError(null);
+
+        try {
+            saveTemplate(template);
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000);
+        } catch (error) {
+            setSaveError(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to save template",
+            );
+        } finally {
             setSaving(false);
-        }, 1000);
+        }
     };
 
     const update = (field: keyof InvoiceTemplate, value: string | number) => {
@@ -388,8 +403,28 @@ const TemplateForm = () => {
                         </Card.Body>
                     </Card>
 
+                    {/* Save alerts */}
+                    {/* {saveSuccess && (
+                        <Alert
+                            variant="success"
+                            dismissible
+                            onClose={() => setSaveSuccess(false)}
+                        >
+                            ✓ Template saved successfully!
+                        </Alert>
+                    )}
+                    {saveError && (
+                        <Alert
+                            variant="danger"
+                            dismissible
+                            onClose={() => setSaveError(null)}
+                        >
+                            {saveError}
+                        </Alert>
+                    )} */}
+
                     <Button
-                        variant="success"
+                        variant={saveError ? "danger" : "success"}
                         size="lg"
                         className="w-100 fw-semibold"
                         onClick={handleSave}
@@ -406,7 +441,13 @@ const TemplateForm = () => {
                                 Saving...
                             </>
                         ) : (
-                            <>💾 Save Template</>
+                            <>
+                                {saveSuccess
+                                    ? "✓ Template saved successfully!"
+                                    : saveError
+                                      ? `✖${saveError}`
+                                      : "💾 Save Template"}
+                            </>
                         )}
                     </Button>
                 </div>

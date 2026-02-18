@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Form, Button, Card, Alert, Spinner } from "react-bootstrap";
 import type { InvoiceTemplate, Invoice } from "../types/invoice";
 import { generateInvoicePdf } from "../lib/generatePdf";
+import { loadTemplate, saveInvoice } from "../lib/storage";
 import { currencySymbols } from "../lib/currencySymbols";
 
 const GenerateInvoice = () => {
@@ -16,42 +17,29 @@ const GenerateInvoice = () => {
     const [amount, setAmount] = useState(0);
     const [notes, setNotes] = useState("");
 
-    const loadTemplate = async () => {
-        // Mock template data - replace with actual API call
-        const mockTemplate: InvoiceTemplate = {
-            issuer_name: "John Doe",
-            issuer_address: "123 Main St, City, Country",
-            issuer_tax_id: "TAX123456",
-            issuer_email: "john@example.com",
-            client_name: "Client Company",
-            client_address: "456 Client Ave, City, Country",
-            client_tax_id: "CLIENT123",
-            currency: "EUR",
-            salary_rate: 5000,
-            rate_unit: "monthly",
-            description: "Software development services",
-            payment_terms: "Payable within 14 days",
-            bank_name: "Bank Name",
-            iban: "DE89370400440532013000",
-            swift_bic: "COBADEFFXXX",
-        };
+    const loadTemplateData = async () => {
+        const savedTemplate = loadTemplate();
 
-        setTemplate(mockTemplate);
-        setAmount(mockTemplate.salary_rate);
+        if (savedTemplate) {
+            setTemplate(savedTemplate);
+            setAmount(savedTemplate.salary_rate);
 
-        const due = new Date();
-        due.setDate(due.getDate() + 14);
-        setDueDate(due.toISOString().split("T")[0]);
+            const daysMatch =
+                savedTemplate.payment_terms?.match(/(\d+)\s*days/i);
+            const days = daysMatch ? parseInt(daysMatch[1]) : 14;
+            const due = new Date();
+            due.setDate(due.getDate() + days);
+            setDueDate(due.toISOString().split("T")[0]);
 
-        const month = new Date().toISOString().slice(0, 7).replace("-", "");
-        setInvoiceNumber(`INV-${month}`);
+            const month = new Date().toISOString().slice(0, 7).replace("-", "");
+            setInvoiceNumber(`INV-${month}`);
+        }
 
         setLoading(false);
     };
 
     useEffect(() => {
-        loadTemplate();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        loadTemplateData();
     }, []);
 
     const handleGenerate = async () => {
@@ -68,6 +56,10 @@ const GenerateInvoice = () => {
                 notes,
             };
 
+            // Save to history
+            saveInvoice(invoice);
+
+            // Generate and download PDF
             const doc = generateInvoicePdf(template, invoice);
             doc.save(`invoice-${invoiceNumber}.pdf`);
         } catch (error) {

@@ -3,3 +3,9 @@ export const currencySymbols: Record<string, string> = {
     USD: "$",
     UAH: "₴",
 };
+
+export const currencyNames: Record<string, string> = {
+    EUR: "Euro",
+    USD: "US Dollar",
+    UAH: "Ukrainian Hryvnia",
+};

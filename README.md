@@ -19,6 +19,7 @@ A lightweight, browser-based invoice generation application built with React, Bo
 - React Bootstrap
 - jsPDF (PDF generation)
 - Vite (build tool)
+- AWS CDK (Infrastructure as Code)
 
 ## Getting Started
 
@@ -33,34 +34,45 @@ A lightweight, browser-based invoice generation application built with React, Bo
 
 ```bash
 git clone <repository-url>
-cd simple-invoice-hub
+cd simple-invoice-service
 ```
 
-2. Install dependencies
+2. Install frontend dependencies
 
 ```bash
+cd frontend
 npm install
 ```
 
-3. Start the development server
+3. Install infrastructure dependencies
 
 ```bash
+cd ../infra
+npm install
+```
+
+4. Start the frontend development server
+
+```bash
+cd ../frontend
 npm run dev
 ```
 
-4. Open your browser and navigate to `http://localhost:5173`
+5. Open your browser and navigate to `http://localhost:5173`
 
 ### Build for Production
 
 ```bash
+cd frontend
 npm run build
 ```
 
-The built files will be in the `dist` directory.
+The built files will be in the `frontend/dist` directory.
 
 ### Preview Production Build
 
 ```bash
+cd frontend
 npm run preview
 ```
 
@@ -99,23 +111,30 @@ npm run preview
 ## Project Structure
 
 ```
-simple-invoice-hub/
-├── src/
-│   ├── components/          # React components
-│   │   ├── GenerateInvoice.tsx
-│   │   ├── TemplateForm.tsx
-│   │   ├── InvoiceHistory.tsx
-│   │   └── InvoicePreview.tsx
-│   ├── routes/              # Page components
-│   │   └── Dashboard.tsx
-│   ├── lib/                 # Utilities
-│   │   └── generatePdf.ts   # PDF generation logic
-│   ├── types/               # TypeScript types
-│   │   └── invoice.ts
-│   └── assets/              # Static assets
-├── public/                  # Public assets
-└── package.json
+simple-invoice-service/
+├── frontend/                # React frontend application
+│   ├── src/
+│   │   ├── components/      # React components
+│   │   ├── routes/          # Page components
+│   │   ├── lib/             # Utilities
+│   │   ├── types/           # TypeScript types
+│   │   └── assets/          # Static assets
+│   ├── index.html
+│   ├── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
+│
+└── infra/                   # AWS CDK infrastructure
+    ├── stacks/
+    │   └── invoice-service-stack.ts
+    ├── app.ts
+    ├── cdk.json
+    ├── package.json
+    ├── tsconfig.json
+    └── README.md
 ```
+
+Each folder is completely independent with its own dependencies and configuration.
 
 ## Customization
 
@@ -166,6 +185,28 @@ To backup your data:
 - Chrome/Edge (latest)
 - Firefox (latest)
 - Safari (latest)
+
+## AWS Infrastructure
+
+This project includes AWS CDK infrastructure for cloud deployment:
+
+- S3 bucket for PDF storage
+- DynamoDB tables for invoice data and templates
+- See `infra/README.md` for deployment instructions
+
+To deploy the infrastructure:
+```bash
+cd infra
+npm run deploy
+```
+
+To bootstrap CDK (first time only):
+```bash
+cd infra
+npm run bootstrap
+```
+
+For more details, check the [Infrastructure README](infra/README.md).
 
 ## License
 

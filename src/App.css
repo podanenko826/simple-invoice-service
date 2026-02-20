@@ -1,0 +1,141 @@
+/* Color Palette */
+:root {
+    --primary-navy: #0F2E4D;
+    --secondary-blue: #2F6EB3;
+    --accent-teal: #18B892;
+    --bg-light: #F5F7FA;
+    --border-color: #E3E8EF;
+    --text-dark: #1F2937;
+    --text-muted: #6B7280;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Global Styles */
+body {
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Card Styles */
+.card {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 2px solid var(--accent-teal);
+    padding: 1.25rem 1.5rem;
+}
+
+.card-title {
+    color: var(--text-dark);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.card-subtitle {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Form Styles */
+.form-label {
+    color: var(--text-dark);
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.form-control,
+.form-select {
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.9375rem;
+    color: var(--text-dark);
+    background-color: white;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--secondary-blue);
+    box-shadow: 0 0 0 3px rgba(47, 110, 179, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--text-muted);
+    opacity: 0.6;
+}
+
+/* Button Styles */
+.btn-primary {
+    background-color: var(--secondary-blue);
+    border-color: var(--secondary-blue);
+    color: white;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    border-radius: 6px;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-navy);
+    border-color: var(--primary-navy);
+}
+
+.btn-success {
+    background-color: var(--accent-teal);
+    border-color: var(--accent-teal);
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #15a07d;
+    border-color: #15a07d;
+}
+
+.btn-outline-secondary {
+    border-color: var(--border-color);
+    color: var(--text-muted);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--bg-light);
+    border-color: var(--secondary-blue);
+    color: var(--secondary-blue);
+}
+
+.btn-outline-danger {
+    border-color: var(--border-color);
+    color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+/* Text Colors */
+.text-muted {
+    color: var(--text-muted) !important;
+}
+
+.text-dark {
+    color: var(--text-dark) !important;
+}
+
+/* Section Headers with Accent Line */
+.section-header {
+    border-bottom: 2px solid var(--accent-teal);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.section-header h4 {
+    color: var(--text-dark);
+    font-weight: 600;
+    font-size: 1.125rem;
+}

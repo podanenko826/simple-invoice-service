@@ -1,0 +1,88 @@
+/* Dashboard Styles */
+.dashboard {
+    min-height: 100vh;
+    background-color: #f8f9fa;
+}
+
+/* Custom Tabs */
+.custom-tabs {
+    display: flex;
+    justify-content: space-evenly;
+    padding: 0.5rem;
+
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.custom-tabs .nav-link {
+    border: none;
+    border-radius: 6px;
+    color: #6c757d;
+    font-weight: 500;
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.custom-tabs .nav-link:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.custom-tabs .nav-link.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+/* Invoice Card Hover Effect */
+.invoice-card {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.invoice-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Enhancements */
+.form-control:focus,
+.form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Card Enhancements */
+.card {
+    border: none;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+    background-color: white;
+    border-bottom: 2px solid #f8f9fa;
+    padding: 1.25rem;
+}
+
+/* Button Enhancements */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .custom-tabs .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+}

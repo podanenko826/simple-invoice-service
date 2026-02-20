@@ -1,0 +1,161 @@
+/* Color Palette */
+:root {
+    --primary-navy: #0F2E4D;
+    --secondary-blue: #2F6EB3;
+    --accent-teal: #18B892;
+    --bg-light: #F5F7FA;
+    --border-color: #E3E8EF;
+    --text-dark: #1F2937;
+    --text-muted: #6B7280;
+}
+
+/* Invoice Preview Styles */
+.invoice-preview-wrapper {
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background: white;
+}
+
+.preview-header {
+    background-color: var(--bg-light);
+    padding: 0.625rem 1.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preview-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--secondary-blue);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.invoice-preview-card {
+    border: none;
+    border-radius: 0;
+}
+
+.invoice-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--primary-navy);
+}
+
+.preview-section-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+}
+
+.invoice-table {
+    overflow: hidden;
+    border: 2px solid var(--text-dark);
+    border-radius: 0;
+}
+
+.invoice-table-header {
+    background-color: white;
+    color: var(--text-dark);
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 700;
+    border-bottom: 2px solid var(--text-dark);
+}
+
+.invoice-table-body {
+    padding: 0;
+    font-size: 0.875rem;
+    background: white;
+}
+
+.invoice-table-row {
+    padding: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.invoice-table-row:last-child {
+    border-bottom: none;
+}
+
+.invoice-total {
+    font-size: 1.75rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-dark);
+}
+
+.seller-details {
+    color: var(--text-dark);
+}
+
+.seller-details h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.seller-details p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+.bill-to-section {
+    color: var(--text-dark);
+}
+
+.bill-to-section .fw-bold {
+    color: var(--text-dark);
+}
+
+.invoice-date-info {
+    text-align: right;
+}
+
+.invoice-date-info .text-muted {
+    color: var(--text-muted) !important;
+}
+
+.notes-section {
+    background-color: var(--bg-light);
+    padding: 1rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.notes-section .preview-section-label {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+.notes-section p {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .invoice-title {
+        font-size: 2rem;
+    }
+
+    .invoice-total {
+        font-size: 1.5rem;
+    }
+
+    .invoice-table-header,
+    .invoice-table-body {
+        font-size: 0.75rem;
+    }
+}

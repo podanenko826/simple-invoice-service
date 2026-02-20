@@ -1,11 +1,8 @@
 import "./App.css";
+import Dashboard from "./routes/Dashboard";
 
 function App() {
-    return (
-        <>
-            <h1>Simple Invoice Service</h1>
-        </>
-    );
+    return <Dashboard />;
 }
 
 export default App;

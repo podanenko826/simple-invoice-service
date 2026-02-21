@@ -1,0 +1,16 @@
+{
+  "enabled": true,
+  "name": "Lint Infra on Save",
+  "description": "Automatically runs ESLint fix when saving TypeScript files in the infra folder",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "infra/**/*.ts"
+    ]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "cd infra && npm run lint:fix"
+  }
+}

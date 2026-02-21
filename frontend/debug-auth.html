@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+    <head>
+        <title>Auth Debug</title>
+    </head>
+    <body>
+        <h1>Magic Link Debug</h1>
+        <div id="output"></div>
+        <script>
+            const output = document.getElementById("output");
+            output.innerHTML = `
+            <p><strong>Current URL:</strong> ${window.location.href}</p>
+            <p><strong>Hash:</strong> ${window.location.hash}</p>
+            <p><strong>Hash length:</strong> ${window.location.hash.length}</p>
+        `;
+
+            // Parse the fragment
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+                try {
+                    const header = hash.split(".")[0];
+                    const decoded = JSON.parse(
+                        atob(header.replace(/-/g, "+").replace(/_/g, "/")),
+                    );
+                    output.innerHTML += `
+                    <p><strong>Decoded header:</strong></p>
+                    <pre>${JSON.stringify(decoded, null, 2)}</pre>
+                    <p><strong>Expired?</strong> ${decoded.exp < Date.now() / 1000 ? "YES" : "NO"}</p>
+                    <p><strong>Expiry time:</strong> ${new Date(decoded.exp * 1000).toLocaleString()}</p>
+                    <p><strong>Current time:</strong> ${new Date().toLocaleString()}</p>
+                `;
+                } catch (e) {
+                    output.innerHTML += `<p style="color: red;"><strong>Error parsing:</strong> ${e.message}</p>`;
+                }
+            }
+        </script>
+    </body>
+</html>

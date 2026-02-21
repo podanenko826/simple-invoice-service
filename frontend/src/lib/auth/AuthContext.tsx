@@ -17,6 +17,7 @@ interface AuthContextType {
     isLoading: boolean;
     signOut: () => Promise<void>;
     refreshAuth: () => Promise<void>;
+    reloadTokens: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Refresh tokens
     const refreshAuth = useCallback(async () => {
         try {
-            const newTokens = await refreshTokens({
+            await refreshTokens({
                 tokensCb: (refreshedTokens) => {
                     setTokens((prev) =>
                         prev
@@ -50,7 +51,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     );
                 },
             });
-            return newTokens;
         } catch (error) {
             console.error("Failed to refresh tokens:", error);
             setTokens(null);
@@ -68,12 +68,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         await signedOut;
     }, []);
 
+    // Reload tokens from storage
+    const reloadTokens = useCallback(async () => {
+        const storedTokens = await retrieveTokens();
+        if (storedTokens) {
+            setTokens(storedTokens as TokensFromSignIn);
+        }
+    }, []);
+
     const value: AuthContextType = {
         tokens,
         isAuthenticated: !!tokens,
         isLoading,
         signOut,
         refreshAuth,
+        reloadTokens,
     };
 
     return (

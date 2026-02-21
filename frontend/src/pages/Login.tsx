@@ -1,30 +1,43 @@
-import { useState, useEffect } from "react";
-import { Passwordless } from "../lib/auth/index.js";
+import SISLogoIcon from "@/components/SISLogoIcon";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Mail, ArrowRight, Loader2, CheckCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/lib/auth/AuthContext";
 import { requestSignInLink, signInWithLink } from "../lib/auth/magic-link.js";
+import { storeTokens } from "../lib/auth/storage.js";
 import type { BusyState, IdleState } from "../lib/auth/model.js";
-import type { TokensFromSignIn } from "../lib/auth/model.js";
-import "../lib/auth/paswordless.css";
 
-// Configure the Passwordless library
-Passwordless.configure({
-    clientId: "3frk8crgtpd1bcdiig76ggea87", // Replace with your Cognito Client ID
-    cognitoIdpEndpoint: "eu-west-1", // Replace with your AWS region
-});
-
-export default function Login() {
+const Login = () => {
     const [email, setEmail] = useState("");
     const [status, setStatus] = useState<BusyState | IdleState | "">("");
-    const [tokens, setTokens] = useState<TokensFromSignIn | null>(null);
     const [error, setError] = useState("");
+    const navigate = useNavigate();
+    const { reloadTokens } = useAuth();
+    const hasProcessedLink = useRef(false);
 
     // Check for magic link in URL on page load
     useEffect(() => {
-        console.log("useEffect");
+        // Only process if there's a hash in the URL
+        if (!window.location.hash) {
+            return;
+        }
+
+        // Prevent double execution
+        if (hasProcessedLink.current) {
+            return;
+        }
+        hasProcessedLink.current = true;
+
         const { signedIn } = signInWithLink({
             statusCb: setStatus,
-            tokensCb: (tokens) => {
-                setTokens(tokens);
-                console.log("Authenticated with tokens:", tokens);
+            tokensCb: async (tokens) => {
+                // Store tokens to localStorage
+                await storeTokens(tokens);
+                // Reload tokens from storage into auth context
+                await reloadTokens();
+                navigate("/workspace", { replace: true });
             },
         });
 
@@ -32,7 +45,8 @@ export default function Login() {
             console.error("Sign-in error:", err);
             setError(err.message);
         });
-    }, []);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Only run once on mount
 
     const handleRequestLink = () => {
         setError("");
@@ -51,133 +65,94 @@ export default function Login() {
             });
     };
 
-    if (tokens) {
-        return (
-            <div className="passwordless-main-container">
-                <div className="passwordless-card-container">
-                    <h2>Successfully Authenticated!</h2>
-                    <div className="passwordless-text-left">
-                        <p>
-                            <strong>Username:</strong> {tokens.username}
-                        </p>
-                        <p>
-                            <strong>Access Token:</strong>{" "}
-                            <code
-                                style={{
-                                    fontSize: "0.8em",
-                                    wordBreak: "break-all",
-                                }}
-                            >
-                                {tokens.accessToken.substring(0, 50)}...
-                            </code>
-                        </p>
-                        <p>
-                            <strong>ID Token:</strong>{" "}
-                            <code
-                                style={{
-                                    fontSize: "0.8em",
-                                    wordBreak: "break-all",
-                                }}
-                            >
-                                {tokens.idToken.substring(0, 50)}...
-                            </code>
-                        </p>
-                        <p>
-                            <strong>Expires:</strong>{" "}
-                            {tokens.expireAt.toLocaleString()}
-                        </p>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    const isBusy =
+        status === "REQUESTING_SIGNIN_LINK" ||
+        status === "SIGNING_IN_WITH_LINK";
 
     return (
-        <div className="passwordless-main-container">
-            <div className="passwordless-card-container">
-                <h2 className="passwordless-email-title">
-                    Sign in with Magic Link
-                </h2>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4">
+            {/* Logo + Wordmark */}
+            <div className="mb-6 animate-float">
+                <SISLogoIcon size={80} />
+            </div>
+            <h1 className="text-5xl font-extrabold tracking-tight text-navy sm:text-6xl">
+                SIS
+            </h1>
+            <p className="mt-2 text-sm uppercase tracking-[0.22em] text-muted-foreground font-medium">
+                Simple Invoice Service
+            </p>
 
-                <div className="passwordless-flex-col">
-                    <div
-                        className="passwordless-flex-col"
-                        style={{ width: "100%" }}
-                    >
-                        <label className="passwordless-input-label">
-                            Email Address
-                        </label>
-                        <input
-                            type="email"
-                            className="passwordless-email-input"
-                            placeholder="Enter your email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            disabled={
-                                status === "REQUESTING_SIGNIN_LINK" ||
-                                status === "SIGNING_IN_WITH_LINK"
-                            }
-                        />
-                    </div>
+            {/* Tagline */}
+            <p className="mt-6 max-w-md text-center text-muted-foreground text-lg leading-relaxed">
+                Fill your invoice template once. Generate monthly invoices in
+                seconds.
+            </p>
 
-                    <button
-                        className="passwordless-button passwordless-button-sign-in"
-                        onClick={handleRequestLink}
-                        disabled={
-                            !email ||
-                            status === "REQUESTING_SIGNIN_LINK" ||
-                            status === "SIGNING_IN_WITH_LINK"
-                        }
-                    >
-                        {status === "REQUESTING_SIGNIN_LINK" ? (
-                            <>
-                                <span className="passwordless-loading-spinner" />{" "}
-                                Sending...
-                            </>
-                        ) : status === "SIGNING_IN_WITH_LINK" ? (
-                            <>
-                                <span className="passwordless-loading-spinner" />{" "}
-                                Signing in...
-                            </>
-                        ) : (
-                            "Send Magic Link"
-                        )}
-                    </button>
-
-                    {status === "SIGNIN_LINK_REQUESTED" && (
-                        <div className="passwordless-flex-col">
-                            <p>✅ Magic link sent! Check your email.</p>
-                            <p style={{ fontSize: "0.9em", color: "#666" }}>
-                                Click the link in your email to sign in.
-                            </p>
-                        </div>
+            {/* Form */}
+            <div className="mt-10 w-full max-w-sm space-y-4">
+                <Input
+                    type="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={isBusy}
+                    className="h-12 rounded-lg border-border bg-card text-sm"
+                />
+                <Button
+                    className="w-full h-12 rounded-lg text-sm font-semibold gap-2"
+                    onClick={handleRequestLink}
+                    disabled={!email || isBusy}
+                >
+                    {status === "REQUESTING_SIGNIN_LINK" ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Sending...
+                        </>
+                    ) : status === "SIGNING_IN_WITH_LINK" ? (
+                        <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Signing in...
+                        </>
+                    ) : (
+                        <>
+                            Log in with Email
+                            <ArrowRight className="h-4 w-4" />
+                        </>
                     )}
+                </Button>
+            </div>
 
-                    {status === "SIGNIN_LINK_EXPIRED" && (
-                        <div className="passwordless-error">
-                            ⚠️ Magic link has expired. Please request a new one.
-                        </div>
-                    )}
-
-                    {status === "INVALID_SIGNIN_LINK" && (
-                        <div className="passwordless-error">
-                            ⚠️ Invalid magic link. Please request a new one.
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="passwordless-error">
-                            ⚠️ Error: {error}
-                        </div>
-                    )}
-
-                    {status && (
-                        <p style={{ fontSize: "0.8em", color: "#999" }}>
-                            Status: {status}
-                        </p>
-                    )}
+            {/* Status messages */}
+            {status === "SIGNIN_LINK_REQUESTED" && (
+                <div className="mt-4 flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle className="h-4 w-4" />
+                    <span>Magic link sent! Check your email.</span>
                 </div>
+            )}
+
+            {status === "SIGNIN_LINK_EXPIRED" && (
+                <div className="mt-4 text-sm text-destructive">
+                    ⚠️ Magic link has expired. Please request a new one.
+                </div>
+            )}
+
+            {status === "INVALID_SIGNIN_LINK" && (
+                <div className="mt-4 text-sm text-destructive">
+                    ⚠️ Invalid magic link. Please request a new one.
+                </div>
+            )}
+
+            {error && (
+                <div className="mt-4 text-sm text-destructive">⚠️ {error}</div>
+            )}
+
+            {/* Helper text */}
+            <div className="mt-4 flex items-center gap-2 text-muted-foreground text-xs">
+                <Mail className="h-3.5 w-3.5" />
+                <span>We'll send you a magic link — no password needed</span>
             </div>
         </div>
     );
-}
+};
+
+export default Login;

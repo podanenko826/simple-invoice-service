@@ -102,11 +102,11 @@ const InvoicePreview = ({
                             fontWeight: 400,
                         }}
                     >
-                        <span>Issued · {formatDate(issueDate)}</span>
+                        <span>Issued: {formatDate(issueDate)}</span>
                         {dueDate && (
                             <>
                                 <span style={{ color: C.divider }}>•</span>
-                                <span>Due · {formatDate(dueDate)}</span>
+                                <span>Due: {formatDate(dueDate)}</span>
                             </>
                         )}
                     </div>
@@ -149,6 +149,30 @@ const InvoicePreview = ({
                                 }}
                             >
                                 {template.companyEmail}
+                            </p>
+                        )}
+                        {template.companyPhone && (
+                            <p
+                                className="mt-[0.15em]"
+                                style={{
+                                    fontSize: "1em",
+                                    color: C.secondary,
+                                    fontWeight: 400,
+                                }}
+                            >
+                                {template.companyPhone}
+                            </p>
+                        )}
+                        {template.taxId && (
+                            <p
+                                className="mt-[0.15em]"
+                                style={{
+                                    fontSize: "1em",
+                                    color: C.secondary,
+                                    fontWeight: 400,
+                                }}
+                            >
+                                Tax ID: {template.taxId}
                             </p>
                         )}
                     </div>

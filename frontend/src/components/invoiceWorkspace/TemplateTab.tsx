@@ -114,10 +114,10 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                 </div>
 
                 {/* Step content - grows to fill available space */}
-                <div className="flex-1 min-h-0 overflow-y-auto mb-6">
+                <div className="flex-1 min-h-0 mb-6">
                     {step === 0 && (
-                        <Card>
-                            <CardHeader className="pb-4">
+                        <Card className="h-[560px] flex flex-col">
+                            <CardHeader className="pb-5 flex-shrink-0">
                                 <div className="flex items-center gap-2">
                                     <Building2 className="h-5 w-5 text-primary" />
                                     <CardTitle className="text-lg">
@@ -129,9 +129,9 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     invoice.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                            <CardContent className="space-y-5 flex-1 overflow-y-auto pb-5">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="companyName">
                                             Company Name *
                                         </Label>
@@ -147,7 +147,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="taxId">
                                             Tax ID / VAT Number
                                         </Label>
@@ -161,7 +161,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                     <Label htmlFor="companyAddress">
                                         Address
                                     </Label>
@@ -180,8 +180,8 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         }
                                     />
                                 </div>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="companyEmail">
                                             Email
                                         </Label>
@@ -198,7 +198,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="companyPhone">
                                             Phone
                                         </Label>
@@ -216,12 +216,30 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     </div>
                                 </div>
                             </CardContent>
+                            <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setStep((s) => s - 1)}
+                                    disabled={step === 0}
+                                    className="gap-2"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={() => setStep((s) => s + 1)}
+                                    className="gap-2"
+                                >
+                                    Next
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </Card>
                     )}
 
                     {step === 1 && (
-                        <Card>
-                            <CardHeader className="pb-4">
+                        <Card className="h-[560px] flex flex-col">
+                            <CardHeader className="pb-5 flex-shrink-0">
                                 <div className="flex items-center gap-2">
                                     <User className="h-5 w-5 text-primary" />
                                     <CardTitle className="text-lg">
@@ -232,9 +250,9 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     Default client details for your invoices.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                            <CardContent className="space-y-5 flex-1 overflow-y-auto pb-5">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="clientName">
                                             Client Name *
                                         </Label>
@@ -250,7 +268,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="clientEmail">
                                             Client Email
                                         </Label>
@@ -268,7 +286,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                     <Label htmlFor="clientAddress">
                                         Client Address
                                     </Label>
@@ -286,12 +304,30 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     />
                                 </div>
                             </CardContent>
+                            <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setStep((s) => s - 1)}
+                                    disabled={step === 0}
+                                    className="gap-2"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={() => setStep((s) => s + 1)}
+                                    className="gap-2"
+                                >
+                                    Next
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </Card>
                     )}
 
                     {step === 2 && (
-                        <Card>
-                            <CardHeader className="pb-4">
+                        <Card className="h-[560px] flex flex-col">
+                            <CardHeader className="pb-5 flex-shrink-0">
                                 <div className="flex items-center gap-2">
                                     <Landmark className="h-5 w-5 text-primary" />
                                     <CardTitle className="text-lg">
@@ -302,9 +338,9 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     Payment information shown on your invoices.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                            <CardContent className="space-y-5 flex-1 overflow-y-auto pb-5">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="bankName">
                                             Bank Name *
                                         </Label>
@@ -320,7 +356,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="accountName">
                                             Account Name
                                         </Label>
@@ -337,8 +373,8 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="accountNumber">
                                             Account Number *
                                         </Label>
@@ -354,7 +390,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="routingNumber">
                                             Routing / Sort Code
                                         </Label>
@@ -371,8 +407,8 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="grid gap-4 sm:grid-cols-2">
-                                    <div className="space-y-2">
+                                <div className="grid gap-5 sm:grid-cols-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="iban">IBAN</Label>
                                         <Input
                                             id="iban"
@@ -383,7 +419,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="swiftCode">
                                             SWIFT / BIC Code
                                         </Label>
@@ -401,12 +437,30 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     </div>
                                 </div>
                             </CardContent>
+                            <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setStep((s) => s - 1)}
+                                    disabled={step === 0}
+                                    className="gap-2"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={() => setStep((s) => s + 1)}
+                                    className="gap-2"
+                                >
+                                    Next
+                                    <ArrowRight className="h-4 w-4" />
+                                </Button>
+                            </div>
                         </Card>
                     )}
 
                     {step === 3 && (
-                        <Card>
-                            <CardHeader className="pb-4">
+                        <Card className="h-[560px] flex flex-col">
+                            <CardHeader className="pb-5 flex-shrink-0">
                                 <div className="flex items-center gap-2">
                                     <FileText className="h-5 w-5 text-primary" />
                                     <CardTitle className="text-lg">
@@ -417,9 +471,9 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     Default values applied to every new invoice.
                                 </CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid gap-4 sm:grid-cols-3">
-                                    <div className="space-y-2">
+                            <CardContent className="space-y-5 flex-1 overflow-y-auto pb-5">
+                                <div className="grid gap-5 sm:grid-cols-3">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="currency">
                                             Currency
                                         </Label>
@@ -446,7 +500,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             </SelectContent>
                                         </Select>
                                     </div>
-                                    <div className="space-y-2">
+                                    <div className="space-y-2.5">
                                         <Label htmlFor="taxRate">
                                             Tax Rate (%)
                                         </Label>
@@ -469,7 +523,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-2.5">
                                     <Label htmlFor="notes">
                                         Default Notes / Footer
                                     </Label>
@@ -484,39 +538,26 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                     />
                                 </div>
                             </CardContent>
+                            <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">
+                                <Button
+                                    variant="outline"
+                                    onClick={() => setStep((s) => s - 1)}
+                                    disabled={step === 0}
+                                    className="gap-2"
+                                >
+                                    <ArrowLeft className="h-4 w-4" />
+                                    Back
+                                </Button>
+                                <Button
+                                    onClick={handleSave}
+                                    size="lg"
+                                    className="gap-2"
+                                >
+                                    <Save className="h-4 w-4" />
+                                    {saved ? "Saved!" : "Save Template"}
+                                </Button>
+                            </div>
                         </Card>
-                    )}
-                </div>
-
-                {/* Navigation - fixed at bottom */}
-                <div className="flex-shrink-0 flex items-end justify-between">
-                    <Button
-                        variant="outline"
-                        onClick={() => setStep((s) => s - 1)}
-                        disabled={step === 0}
-                        className="gap-2"
-                    >
-                        <ArrowLeft className="h-4 w-4" />
-                        Back
-                    </Button>
-
-                    {isLastStep ? (
-                        <Button
-                            onClick={handleSave}
-                            size="lg"
-                            className="gap-2"
-                        >
-                            <Save className="h-4 w-4" />
-                            {saved ? "Saved!" : "Save Template"}
-                        </Button>
-                    ) : (
-                        <Button
-                            onClick={() => setStep((s) => s + 1)}
-                            className="gap-2"
-                        >
-                            Next
-                            <ArrowRight className="h-4 w-4" />
-                        </Button>
                     )}
                 </div>
             </div>

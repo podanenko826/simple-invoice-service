@@ -1,22 +1,22 @@
-import type { InvoiceTemplate, Invoice } from "../types/invoice";
-
-const TEMPLATE_KEY = "invoice_template";
-const INVOICES_KEY = "invoices_history";
+import type { InvoiceTemplate } from "@/components/invoiceWorkspace/TemplateTab";
+import type { GeneratedInvoice } from "@/components/invoiceWorkspace/GenerateTab";
+import { templateApi, invoiceApi } from "./api-client";
 
 // Template Storage
-export const saveTemplate = (template: InvoiceTemplate): void => {
+export const saveTemplate = async (
+    template: InvoiceTemplate,
+): Promise<void> => {
     try {
-        localStorage.setItem(TEMPLATE_KEY, JSON.stringify(template));
+        await templateApi.save(template);
     } catch (error) {
         console.error("Error saving template:", error);
         throw new Error("Failed to save template");
     }
 };
 
-export const loadTemplate = (): InvoiceTemplate | null => {
+export const loadTemplate = async (): Promise<InvoiceTemplate | null> => {
     try {
-        const data = localStorage.getItem(TEMPLATE_KEY);
-        return data ? JSON.parse(data) : null;
+        return await templateApi.get();
     } catch (error) {
         console.error("Error loading template:", error);
         return null;
@@ -24,37 +24,34 @@ export const loadTemplate = (): InvoiceTemplate | null => {
 };
 
 // Invoice History Storage
-export const saveInvoice = (invoice: Invoice): void => {
+export const saveInvoice = async (invoice: GeneratedInvoice): Promise<void> => {
     try {
-        const invoices = loadInvoices();
-        const newInvoice = {
-            ...invoice,
-            id: Date.now().toString(),
-            created_at: new Date().toISOString(),
-        };
-        invoices.unshift(newInvoice);
-        localStorage.setItem(INVOICES_KEY, JSON.stringify(invoices));
+        await invoiceApi.save(invoice);
     } catch (error) {
         console.error("Error saving invoice:", error);
         throw new Error("Failed to save invoice");
     }
 };
 
-export const loadInvoices = (): Invoice[] => {
+export const loadInvoices = async (): Promise<GeneratedInvoice[]> => {
     try {
-        const data = localStorage.getItem(INVOICES_KEY);
-        return data ? JSON.parse(data) : [];
+        return await invoiceApi.list();
     } catch (error) {
         console.error("Error loading invoices:", error);
         return [];
     }
 };
 
-export const clearAllData = (): void => {
+export const deleteInvoice = async (invoiceId: string): Promise<void> => {
     try {
-        localStorage.removeItem(TEMPLATE_KEY);
-        localStorage.removeItem(INVOICES_KEY);
+        await invoiceApi.delete(invoiceId);
     } catch (error) {
-        console.error("Error clearing data:", error);
+        console.error("Error deleting invoice:", error);
+        throw new Error("Failed to delete invoice");
     }
+};
+
+export const clearAllData = (): void => {
+    // No longer needed - data is in DynamoDB
+    console.log("clearAllData is deprecated - data is stored in DynamoDB");
 };

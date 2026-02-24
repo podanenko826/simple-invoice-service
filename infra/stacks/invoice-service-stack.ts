@@ -1,12 +1,21 @@
 import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
+import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { Passwordless } from "./constructs/cognito-paswordless/cognito-paswordless.js";
+import * as path from "path";
+import { fileURLToPath } from "url";
+
+// ES module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceBucket: s3.Bucket;
-    public readonly templateTable: dynamodb.Table;
+    public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -30,15 +39,16 @@ export class InvoiceServiceStack extends cdk.Stack {
             autoDeleteObjects: false,
         });
 
-        // DynamoDB Table for invoice templates
-        this.templateTable = new dynamodb.Table(this, "TemplateTable", {
-            tableName: "InvoiceTemplates",
+        // DynamoDB Table for all invoice data (templates + invoices)
+        // Single table design with composite sort key
+        this.invoiceDataTable = new dynamodb.Table(this, "InvoiceDataTable", {
+            tableName: `${projectNamePrfix}-invoice-data-${environment}`,
             partitionKey: {
                 name: "userId",
                 type: dynamodb.AttributeType.STRING,
             },
             sortKey: {
-                name: "templateId",
+                name: "itemId",
                 type: dynamodb.AttributeType.STRING,
             },
             billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
@@ -47,6 +57,21 @@ export class InvoiceServiceStack extends cdk.Stack {
                 pointInTimeRecoveryEnabled: true,
             },
             removalPolicy: removalPolicy,
+            stream: dynamodb.StreamViewType.NEW_AND_OLD_IMAGES, // For future audit/sync
+        });
+
+        // Add GSI for querying by item type (TEMPLATE or INVOICE)
+        this.invoiceDataTable.addGlobalSecondaryIndex({
+            indexName: "TypeIndex",
+            partitionKey: {
+                name: "GSI1PK",
+                type: dynamodb.AttributeType.STRING,
+            },
+            sortKey: {
+                name: "GSI1SK",
+                type: dynamodb.AttributeType.STRING,
+            },
+            projectionType: dynamodb.ProjectionType.ALL,
         });
 
         // Cognito Passwordless Authentication
@@ -60,29 +85,242 @@ export class InvoiceServiceStack extends cdk.Stack {
             logLevel: environment === "dev" ? "DEBUG" : "INFO",
         });
 
+        // Common Lambda configuration
+        const lambdaEnvironment = {
+            TABLE_NAME: this.invoiceDataTable.tableName,
+            BUCKET_NAME: this.invoiceBucket.bucketName,
+        };
+
+        const lambdaProps = {
+            runtime: lambda.Runtime.NODEJS_20_X,
+            timeout: cdk.Duration.seconds(30),
+            environment: lambdaEnvironment,
+            bundling: {
+                minify: true,
+                sourceMap: true,
+                externalModules: ["@aws-sdk/*"], // Use AWS SDK from Lambda runtime
+            },
+        };
+
+        // Template Lambda Functions (separate GET and POST for caching)
+        const getTemplateFunction = new NodejsFunction(
+            this,
+            "GetTemplateFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-template.ts"
+                ),
+                handler: "handler",
+                description: "Get user's invoice template",
+            }
+        );
+
+        const saveTemplateFunction = new NodejsFunction(
+            this,
+            "SaveTemplateFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/save-template.ts"
+                ),
+                handler: "handler",
+                description: "Save user's invoice template",
+            }
+        );
+
+        // Invoice Lambda Functions (separate for caching)
+        const listInvoicesFunction = new NodejsFunction(
+            this,
+            "ListInvoicesFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/list-invoices.ts"
+                ),
+                handler: "handler",
+                description: "List all invoices for user",
+            }
+        );
+
+        const getInvoiceFunction = new NodejsFunction(
+            this,
+            "GetInvoiceFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-invoice.ts"
+                ),
+                handler: "handler",
+                description: "Get specific invoice",
+            }
+        );
+
+        const saveInvoiceFunction = new NodejsFunction(
+            this,
+            "SaveInvoiceFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/save-invoice.ts"
+                ),
+                handler: "handler",
+                description: "Save new invoice",
+            }
+        );
+
+        const deleteInvoiceFunction = new NodejsFunction(
+            this,
+            "DeleteInvoiceFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/delete-invoice.ts"
+                ),
+                handler: "handler",
+                description: "Delete invoice",
+            }
+        );
+
+        // Grant DynamoDB permissions
+        this.invoiceDataTable.grantReadData(getTemplateFunction);
+        this.invoiceDataTable.grantReadData(listInvoicesFunction);
+        this.invoiceDataTable.grantReadData(getInvoiceFunction);
+        this.invoiceDataTable.grantWriteData(saveTemplateFunction);
+        this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
+        this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
+
+        // Grant S3 permissions
+        this.invoiceBucket.grantReadWrite(saveInvoiceFunction);
+        this.invoiceBucket.grantRead(getInvoiceFunction);
+        this.invoiceBucket.grantRead(listInvoicesFunction);
+
+        // Create API Gateway (without expensive cache cluster)
+        const api = new apigateway.RestApi(this, "InvoiceApi", {
+            restApiName: `${projectNamePrfix}-invoice-api-${environment}`,
+            description: "API for invoice management",
+            deployOptions: {
+                stageName: "prod",
+                metricsEnabled: true,
+                tracingEnabled: true,
+            },
+            defaultCorsPreflightOptions: {
+                allowOrigins: ["http://localhost:5173"],
+                allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+                allowHeaders: [
+                    "Content-Type",
+                    "Authorization",
+                    "X-Amz-Date",
+                    "X-Api-Key",
+                    "X-Amz-Security-Token",
+                ],
+                allowCredentials: true,
+            },
+        });
+
+        // Create Cognito authorizer
+        const authorizer = new apigateway.CognitoUserPoolsAuthorizer(
+            this,
+            "ApiAuthorizer",
+            {
+                cognitoUserPools: [this.auth.userPool],
+                identitySource: "method.request.header.Authorization",
+            }
+        );
+
+        // Common method options
+        const authMethodOptions = {
+            authorizer,
+            authorizationType: apigateway.AuthorizationType.COGNITO,
+        };
+
+        // Template endpoints
+        const templates = api.root.addResource("templates");
+
+        // GET /templates
+        templates.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getTemplateFunction),
+            authMethodOptions
+        );
+
+        // POST /templates
+        templates.addMethod(
+            "POST",
+            new apigateway.LambdaIntegration(saveTemplateFunction),
+            authMethodOptions
+        );
+
+        // Invoice endpoints
+        const invoices = api.root.addResource("invoices");
+
+        // GET /invoices
+        invoices.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(listInvoicesFunction),
+            authMethodOptions
+        );
+
+        // POST /invoices
+        invoices.addMethod(
+            "POST",
+            new apigateway.LambdaIntegration(saveInvoiceFunction),
+            authMethodOptions
+        );
+
+        // Single invoice endpoint
+        const invoice = invoices.addResource("{invoiceId}");
+
+        // GET /invoices/{id}
+        invoice.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getInvoiceFunction),
+            authMethodOptions
+        );
+
+        // DELETE /invoices/{id}
+        invoice.addMethod(
+            "DELETE",
+            new apigateway.LambdaIntegration(deleteInvoiceFunction),
+            authMethodOptions
+        );
+
         // Outputs
         new cdk.CfnOutput(this, "InvoiceBucketName", {
             value: this.invoiceBucket.bucketName,
             description: "S3 Bucket for invoice PDFs",
-            exportName: "InvoiceBucketName",
+            exportName: `${projectNamePrfix}-InvoiceBucketName-${environment}`,
         });
 
-        new cdk.CfnOutput(this, "TemplateTableName", {
-            value: this.templateTable.tableName,
-            description: "DynamoDB table for invoice templates",
-            exportName: "TemplateTableName",
+        new cdk.CfnOutput(this, "InvoiceDataTableName", {
+            value: this.invoiceDataTable.tableName,
+            description:
+                "DynamoDB table for invoice data (templates + invoices)",
+            exportName: `${projectNamePrfix}-InvoiceDataTableName-${environment}`,
+        });
+
+        new cdk.CfnOutput(this, "ApiUrl", {
+            value: api.url,
+            description: "Invoice API Gateway URL",
+            exportName: `${projectNamePrfix}-ApiUrl-${environment}`,
         });
 
         new cdk.CfnOutput(this, "UserPoolId", {
             value: this.auth.userPool.userPoolId,
             description: "Cognito User Pool ID",
-            exportName: "UserPoolId",
+            exportName: `${projectNamePrfix}-UserPoolId-${environment}`,
         });
 
         new cdk.CfnOutput(this, "UserPoolClientId", {
             value: this.auth.userPoolClient.userPoolClientId,
             description: "Cognito User Pool Client ID",
-            exportName: "UserPoolClientId",
+            exportName: `${projectNamePrfix}-UserPoolClientId-${environment}`,
         });
     }
 }

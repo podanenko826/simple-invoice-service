@@ -1,0 +1,19 @@
+{
+    "name": "invoice-api-lambda",
+    "version": "1.0.0",
+    "description": "Lambda functions for Invoice API",
+    "type": "module",
+    "scripts": {
+        "build": "tsc",
+        "watch": "tsc --watch"
+    },
+    "dependencies": {
+        "@aws-sdk/client-dynamodb": "^3.600.0",
+        "@aws-sdk/lib-dynamodb": "^3.600.0"
+    },
+    "devDependencies": {
+        "@types/aws-lambda": "^8.10.145",
+        "@types/node": "^20.0.0",
+        "typescript": "^5.0.0"
+    }
+}

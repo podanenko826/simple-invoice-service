@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Settings, Clock } from "lucide-react";
@@ -10,24 +10,87 @@ import GenerateTab, {
     type GeneratedInvoice,
 } from "@/components/invoiceWorkspace/GenerateTab";
 import HistoryTab from "@/components/invoiceWorkspace/HistoryTab";
+import {
+    loadTemplate,
+    saveTemplate,
+    loadInvoices,
+    saveInvoice,
+} from "@/lib/storage";
+import { toast } from "sonner";
 
 const InvoiceWorkSpace = () => {
     const [template, setTemplate] = useState<InvoiceTemplate>(defaultTemplate);
     const [templateSaved, setTemplateSaved] = useState(false);
     const [invoices, setInvoices] = useState<GeneratedInvoice[]>([]);
     const [activeTab, setActiveTab] = useState("generate");
+    const [loading, setLoading] = useState(true);
 
-    const handleSaveTemplate = (t: InvoiceTemplate) => {
-        setTemplate(t);
-        setTemplateSaved(true);
+    // Load data on mount
+    useEffect(() => {
+        const loadData = async () => {
+            try {
+                const [loadedTemplate, loadedInvoices] = await Promise.all([
+                    loadTemplate(),
+                    loadInvoices(),
+                ]);
+
+                if (loadedTemplate) {
+                    setTemplate(loadedTemplate);
+                    setTemplateSaved(true);
+                }
+
+                if (loadedInvoices) {
+                    setInvoices(loadedInvoices);
+                }
+            } catch (error) {
+                console.error("Error loading data:", error);
+                toast.error("Failed to load data");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const handleSaveTemplate = async (t: InvoiceTemplate) => {
+        try {
+            await saveTemplate(t);
+            setTemplate(t);
+            setTemplateSaved(true);
+            toast.success("Template saved successfully");
+        } catch (error) {
+            console.error("Error saving template:", error);
+            toast.error("Failed to save template");
+        }
     };
 
-    const handleGenerate = (invoice: GeneratedInvoice) => {
-        setInvoices((prev) => [invoice, ...prev]);
-        setActiveTab("history");
+    const handleGenerate = async (invoice: GeneratedInvoice) => {
+        try {
+            await saveInvoice(invoice);
+            setInvoices((prev) => [invoice, ...prev]);
+            setActiveTab("history");
+            toast.success("Invoice generated successfully");
+        } catch (error) {
+            console.error("Error generating invoice:", error);
+            toast.error("Failed to generate invoice");
+        }
     };
 
     const nextInvoiceNumber = `INV-${String(invoices.length + 1).padStart(4, "0")}`;
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-background">
+                <Header />
+                <main className="container py-10 max-w-6xl">
+                    <div className="flex items-center justify-center py-16">
+                        <p className="text-muted-foreground">Loading...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background">

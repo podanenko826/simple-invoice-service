@@ -98,7 +98,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     const StepIcon = steps[step].icon;
 
     return (
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px] h-full">
+        <div className="grid gap-8 lg:grid-cols-[1fr_550px] h-full">
             {/* Left: Wizard */}
             <div className="flex flex-col min-w-0 h-full">
                 {/* Step indicator */}

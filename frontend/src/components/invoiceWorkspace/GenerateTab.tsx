@@ -181,199 +181,207 @@ const GenerateTab = ({
     }
 
     return (
-        <div className="grid gap-8 lg:grid-cols-[1fr_420px]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_550px]">
             {/* Left: Form */}
-            <div className="space-y-6 min-w-0">
+            <div className="flex flex-col justify-between space-y-6 min-w-0">
                 {/* Invoice Details */}
-                <Card>
-                    <CardHeader className="pb-4">
-                        <CardTitle className="text-lg">
-                            Invoice Details
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div className="grid gap-4 sm:grid-cols-3">
-                            <div className="space-y-2">
-                                <Label htmlFor="invoiceNumber">
-                                    Invoice Number
-                                </Label>
-                                <Input
-                                    id="invoiceNumber"
-                                    value={invoiceNumber}
-                                    onChange={(e) =>
-                                        setInvoiceNumber(e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="issueDate">Issue Date</Label>
-                                <Input
-                                    id="issueDate"
-                                    type="date"
-                                    value={issueDate}
-                                    onChange={(e) =>
-                                        setIssueDate(e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="dueDate">Due Date</Label>
-                                <Input
-                                    id="dueDate"
-                                    type="date"
-                                    value={dueDate}
-                                    onChange={(e) => setDueDate(e.target.value)}
-                                />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                {/* Line Items */}
-                <Card>
-                    <CardHeader className="pb-4">
-                        <div className="flex items-center justify-between">
+                <div className="space-y-6 min-w-0">
+                    <Card>
+                        <CardHeader className="pb-4">
                             <CardTitle className="text-lg">
-                                Line Items
+                                Invoice Details
                             </CardTitle>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={addLineItem}
-                                className="gap-1"
-                            >
-                                <Plus className="h-3.5 w-3.5" />
-                                Add Item
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            <div className="hidden sm:grid sm:grid-cols-[1fr_80px_100px_80px_40px] gap-3 text-xs font-medium text-muted-foreground px-1">
-                                <span>Description</span>
-                                <span>Qty</span>
-                                <span>Unit Price</span>
-                                <span>Total</span>
-                                <span />
-                            </div>
-                            <Separator className="hidden sm:block" />
-                            {lineItems.map((item) => (
-                                <div
-                                    key={item.id}
-                                    className="grid gap-3 sm:grid-cols-[1fr_80px_100px_80px_40px] items-start"
-                                >
-                                    <div className="space-y-1.5">
-                                        <Input
-                                            placeholder="Item name (e.g. AWS Infrastructure DevOps)"
-                                            value={item.description}
-                                            onChange={(e) =>
-                                                updateLineItem(
-                                                    item.id,
-                                                    "description",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                        <Textarea
-                                            placeholder="Description (optional)"
-                                            rows={1}
-                                            className="min-h-[32px] text-xs resize-none"
-                                            value={item.detail}
-                                            onChange={(e) =>
-                                                updateLineItem(
-                                                    item.id,
-                                                    "detail",
-                                                    e.target.value,
-                                                )
-                                            }
-                                        />
-                                    </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="grid gap-4 sm:grid-cols-3">
+                                <div className="space-y-2">
+                                    <Label htmlFor="invoiceNumber">
+                                        Invoice Number
+                                    </Label>
                                     <Input
-                                        type="number"
-                                        min={1}
-                                        value={item.quantity}
+                                        id="invoiceNumber"
+                                        value={invoiceNumber}
                                         onChange={(e) =>
-                                            updateLineItem(
-                                                item.id,
-                                                "quantity",
-                                                Number(e.target.value),
-                                            )
+                                            setInvoiceNumber(e.target.value)
                                         }
                                     />
-                                    <Input
-                                        type="number"
-                                        min={0}
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={item.unitPrice || ""}
-                                        onChange={(e) =>
-                                            updateLineItem(
-                                                item.id,
-                                                "unitPrice",
-                                                Number(e.target.value),
-                                            )
-                                        }
-                                    />
-                                    <div className="flex items-center h-10 text-sm font-medium px-1">
-                                        {(
-                                            item.quantity * item.unitPrice
-                                        ).toFixed(2)}
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="h-10 w-10 text-muted-foreground hover:text-destructive"
-                                        onClick={() => removeLineItem(item.id)}
-                                        disabled={lineItems.length <= 1}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                    </Button>
                                 </div>
-                            ))}
-                            <Separator />
-                            <div className="flex justify-end pr-14">
-                                <div className="text-right space-y-1">
-                                    <div className="flex justify-between gap-4 text-sm">
-                                        <span className="text-muted-foreground">
-                                            Subtotal
-                                        </span>
-                                        <span>{subtotal.toFixed(2)}</span>
+                                <div className="space-y-2">
+                                    <Label htmlFor="issueDate">
+                                        Issue Date
+                                    </Label>
+                                    <Input
+                                        id="issueDate"
+                                        type="date"
+                                        value={issueDate}
+                                        onChange={(e) =>
+                                            setIssueDate(e.target.value)
+                                        }
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="dueDate">Due Date</Label>
+                                    <Input
+                                        id="dueDate"
+                                        type="date"
+                                        value={dueDate}
+                                        onChange={(e) =>
+                                            setDueDate(e.target.value)
+                                        }
+                                    />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Line Items */}
+                    <Card>
+                        <CardHeader className="pb-4">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg">
+                                    Line Items
+                                </CardTitle>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={addLineItem}
+                                    className="gap-1"
+                                >
+                                    <Plus className="h-3.5 w-3.5" />
+                                    Add Item
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-3">
+                                <div className="hidden sm:grid sm:grid-cols-[1fr_80px_100px_80px_40px] gap-3 text-xs font-medium text-muted-foreground px-1">
+                                    <span>Description</span>
+                                    <span>Qty</span>
+                                    <span>Unit Price</span>
+                                    <span>Total</span>
+                                    <span />
+                                </div>
+                                <Separator className="hidden sm:block" />
+                                {lineItems.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className="grid gap-3 sm:grid-cols-[1fr_80px_100px_80px_40px] items-start"
+                                    >
+                                        <div className="space-y-1.5">
+                                            <Input
+                                                placeholder="Item name (e.g. AWS Infrastructure DevOps)"
+                                                value={item.description}
+                                                onChange={(e) =>
+                                                    updateLineItem(
+                                                        item.id,
+                                                        "description",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                            <Textarea
+                                                placeholder="Description (optional)"
+                                                rows={1}
+                                                className="min-h-[32px] text-xs resize-none"
+                                                value={item.detail}
+                                                onChange={(e) =>
+                                                    updateLineItem(
+                                                        item.id,
+                                                        "detail",
+                                                        e.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </div>
+                                        <Input
+                                            type="number"
+                                            min={1}
+                                            value={item.quantity}
+                                            onChange={(e) =>
+                                                updateLineItem(
+                                                    item.id,
+                                                    "quantity",
+                                                    Number(e.target.value),
+                                                )
+                                            }
+                                        />
+                                        <Input
+                                            type="number"
+                                            min={0}
+                                            step="0.01"
+                                            placeholder="0.00"
+                                            value={item.unitPrice || ""}
+                                            onChange={(e) =>
+                                                updateLineItem(
+                                                    item.id,
+                                                    "unitPrice",
+                                                    Number(e.target.value),
+                                                )
+                                            }
+                                        />
+                                        <div className="flex items-center h-10 text-sm font-medium px-1">
+                                            {(
+                                                item.quantity * item.unitPrice
+                                            ).toFixed(2)}
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                                            onClick={() =>
+                                                removeLineItem(item.id)
+                                            }
+                                            disabled={lineItems.length <= 1}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     </div>
-                                    {(template.taxRate || 0) > 0 && (
+                                ))}
+                                <Separator />
+                                <div className="flex justify-end pr-14">
+                                    <div className="text-right space-y-1">
                                         <div className="flex justify-between gap-4 text-sm">
                                             <span className="text-muted-foreground">
-                                                Tax ({template.taxRate}%)
+                                                Subtotal
                                             </span>
-                                            <span>{tax.toFixed(2)}</span>
+                                            <span>{subtotal.toFixed(2)}</span>
                                         </div>
-                                    )}
-                                    <div className="flex justify-between gap-4 text-base font-semibold border-t border-border pt-1">
-                                        <span>Total</span>
-                                        <span>{total.toFixed(2)}</span>
+                                        {(template.taxRate || 0) > 0 && (
+                                            <div className="flex justify-between gap-4 text-sm">
+                                                <span className="text-muted-foreground">
+                                                    Tax ({template.taxRate}%)
+                                                </span>
+                                                <span>{tax.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                        <div className="flex justify-between gap-4 text-base font-semibold border-t border-border pt-1">
+                                            <span>Total</span>
+                                            <span>{total.toFixed(2)}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
-                {/* Notes */}
-                <Card>
-                    <CardContent className="pt-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="invoiceNotes">
-                                Additional Notes
-                            </Label>
-                            <Textarea
-                                id="invoiceNotes"
-                                placeholder="Any additional notes for this invoice..."
-                                rows={2}
-                                value={notes}
-                                onChange={(e) => setNotes(e.target.value)}
-                            />
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Notes */}
+                    <Card>
+                        <CardContent className="pt-6">
+                            <div className="space-y-2">
+                                <Label htmlFor="invoiceNotes">
+                                    Additional Notes
+                                </Label>
+                                <Textarea
+                                    id="invoiceNotes"
+                                    placeholder="Any additional notes for this invoice..."
+                                    rows={2}
+                                    value={notes}
+                                    onChange={(e) => setNotes(e.target.value)}
+                                />
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
 
                 <div className="flex justify-end gap-3">
                     <Button

@@ -84,7 +84,7 @@ const InvoiceWorkSpace = () => {
         return (
             <div className="min-h-screen bg-background">
                 <Header />
-                <main className="container py-10 max-w-6xl">
+                <main className="container py-10">
                     <div className="flex items-center justify-center py-16">
                         <p className="text-muted-foreground">Loading...</p>
                     </div>
@@ -97,7 +97,7 @@ const InvoiceWorkSpace = () => {
         <div className="min-h-screen bg-background">
             <Header />
 
-            <main className="container py-10 max-w-6xl">
+            <main className="container py-10">
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}

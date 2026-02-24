@@ -12,6 +12,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     Save,
     Building2,
     Landmark,
@@ -22,48 +29,10 @@ import {
     Check,
 } from "lucide-react";
 import InvoicePreview from "./InvoicePreview";
+import type { InvoiceTemplate } from "./templateDefaults";
+import { CURRENCIES } from "@/config/currencies";
 
-export interface InvoiceTemplate {
-    companyName: string;
-    companyAddress: string;
-    companyEmail: string;
-    companyPhone: string;
-    taxId: string;
-    clientName: string;
-    clientEmail: string;
-    clientAddress: string;
-    bankName: string;
-    accountName: string;
-    accountNumber: string;
-    iban: string;
-    routingNumber: string;
-    swiftCode: string;
-
-    notes: string;
-    currency: string;
-    taxRate: number;
-}
-
-const defaultTemplate: InvoiceTemplate = {
-    companyName: "",
-    companyAddress: "",
-    companyEmail: "",
-    companyPhone: "",
-    taxId: "",
-    clientName: "",
-    clientEmail: "",
-    clientAddress: "",
-    bankName: "",
-    accountName: "",
-    accountNumber: "",
-    iban: "",
-    routingNumber: "",
-    swiftCode: "",
-
-    notes: "",
-    currency: "USD",
-    taxRate: 0,
-};
+export type { InvoiceTemplate };
 
 const steps = [
     { id: "company", label: "Company Info", icon: Building2 },
@@ -454,17 +423,28 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         <Label htmlFor="currency">
                                             Currency
                                         </Label>
-                                        <Input
-                                            id="currency"
-                                            placeholder="USD"
+                                        <Select
                                             value={form.currency}
-                                            onChange={(e) =>
-                                                update(
-                                                    "currency",
-                                                    e.target.value,
-                                                )
+                                            onValueChange={(value: string) =>
+                                                update("currency", value)
                                             }
-                                        />
+                                        >
+                                            <SelectTrigger id="currency">
+                                                <SelectValue placeholder="Select currency" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {CURRENCIES.map((curr) => (
+                                                    <SelectItem
+                                                        key={curr.code}
+                                                        value={curr.code}
+                                                    >
+                                                        {curr.symbol}{" "}
+                                                        {curr.code} -{" "}
+                                                        {curr.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="taxRate">
@@ -578,6 +558,4 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     );
 };
 
-// eslint-disable-next-line react-refresh/only-export-components
-export { defaultTemplate };
 export default TemplateTab;

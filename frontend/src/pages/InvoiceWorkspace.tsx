@@ -3,9 +3,9 @@ import Header from "@/components/Header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Settings, Clock } from "lucide-react";
 import TemplateTab, {
-    defaultTemplate,
     type InvoiceTemplate,
 } from "@/components/invoiceWorkspace/TemplateTab";
+import { defaultTemplate } from "@/components/invoiceWorkspace/templateDefaults";
 import GenerateTab, {
     type GeneratedInvoice,
 } from "@/components/invoiceWorkspace/GenerateTab";

@@ -17,6 +17,7 @@ import {
     saveInvoice,
 } from "@/lib/storage";
 import { toast } from "sonner";
+import { exportInvoicePdf } from "@/lib/exportPdf";
 
 const InvoiceWorkSpace = () => {
     const [template, setTemplate] = useState<InvoiceTemplate>(defaultTemplate);
@@ -69,7 +70,7 @@ const InvoiceWorkSpace = () => {
         try {
             await saveInvoice(invoice);
             setInvoices((prev) => [invoice, ...prev]);
-            setActiveTab("history");
+            await exportInvoicePdf(invoice);
             toast.success("Invoice generated successfully");
         } catch (error) {
             console.error("Error generating invoice:", error);

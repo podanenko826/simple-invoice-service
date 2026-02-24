@@ -98,11 +98,11 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     const StepIcon = steps[step].icon;
 
     return (
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_400px] h-full">
             {/* Left: Wizard */}
-            <div className="space-y-6 min-w-0">
+            <div className="flex flex-col min-w-0 h-full">
                 {/* Step indicator */}
-                <div className="space-y-3">
+                <div className="flex-shrink-0 space-y-3 mb-6">
                     <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">
                             Step {step + 1} of {steps.length}
@@ -144,342 +144,372 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                     </div>
                 </div>
 
-                {/* Step content */}
-                {step === 0 && (
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center gap-2">
-                                <Building2 className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-lg">
-                                    Company Information
-                                </CardTitle>
-                            </div>
-                            <CardDescription>
-                                Your business details that appear on every
-                                invoice.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
+                {/* Step content - grows to fill available space */}
+                <div className="flex-1 min-h-0 overflow-y-auto mb-6">
+                    {step === 0 && (
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center gap-2">
+                                    <Building2 className="h-5 w-5 text-primary" />
+                                    <CardTitle className="text-lg">
+                                        Company Information
+                                    </CardTitle>
+                                </div>
+                                <CardDescription>
+                                    Your business details that appear on every
+                                    invoice.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="companyName">
+                                            Company Name *
+                                        </Label>
+                                        <Input
+                                            id="companyName"
+                                            placeholder="Acme Corp"
+                                            value={form.companyName}
+                                            onChange={(e) =>
+                                                update(
+                                                    "companyName",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="taxId">
+                                            Tax ID / VAT Number
+                                        </Label>
+                                        <Input
+                                            id="taxId"
+                                            placeholder="XX-XXXXXXX"
+                                            value={form.taxId}
+                                            onChange={(e) =>
+                                                update("taxId", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="companyName">
-                                        Company Name *
+                                    <Label htmlFor="companyAddress">
+                                        Address
                                     </Label>
-                                    <Input
-                                        id="companyName"
-                                        placeholder="Acme Corp"
-                                        value={form.companyName}
+                                    <Textarea
+                                        id="companyAddress"
+                                        placeholder={
+                                            "123 Business St, Suite 100\nCity, State 12345"
+                                        }
+                                        rows={2}
+                                        value={form.companyAddress}
                                         onChange={(e) =>
                                             update(
-                                                "companyName",
+                                                "companyAddress",
                                                 e.target.value,
                                             )
                                         }
                                     />
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="taxId">
-                                        Tax ID / VAT Number
-                                    </Label>
-                                    <Input
-                                        id="taxId"
-                                        placeholder="XX-XXXXXXX"
-                                        value={form.taxId}
-                                        onChange={(e) =>
-                                            update("taxId", e.target.value)
-                                        }
-                                    />
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="companyEmail">
+                                            Email
+                                        </Label>
+                                        <Input
+                                            id="companyEmail"
+                                            type="email"
+                                            placeholder="billing@company.com"
+                                            value={form.companyEmail}
+                                            onChange={(e) =>
+                                                update(
+                                                    "companyEmail",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="companyPhone">
+                                            Phone
+                                        </Label>
+                                        <Input
+                                            id="companyPhone"
+                                            placeholder="+1 (555) 000-0000"
+                                            value={form.companyPhone}
+                                            onChange={(e) =>
+                                                update(
+                                                    "companyPhone",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="companyAddress">Address</Label>
-                                <Textarea
-                                    id="companyAddress"
-                                    placeholder={
-                                        "123 Business St, Suite 100\nCity, State 12345"
-                                    }
-                                    rows={2}
-                                    value={form.companyAddress}
-                                    onChange={(e) =>
-                                        update("companyAddress", e.target.value)
-                                    }
-                                />
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="companyEmail">Email</Label>
-                                    <Input
-                                        id="companyEmail"
-                                        type="email"
-                                        placeholder="billing@company.com"
-                                        value={form.companyEmail}
-                                        onChange={(e) =>
-                                            update(
-                                                "companyEmail",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="companyPhone">Phone</Label>
-                                    <Input
-                                        id="companyPhone"
-                                        placeholder="+1 (555) 000-0000"
-                                        value={form.companyPhone}
-                                        onChange={(e) =>
-                                            update(
-                                                "companyPhone",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
-                {step === 1 && (
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center gap-2">
-                                <User className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-lg">
-                                    Bill To
-                                </CardTitle>
-                            </div>
-                            <CardDescription>
-                                Default client details for your invoices.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="clientName">
-                                        Client Name *
-                                    </Label>
-                                    <Input
-                                        id="clientName"
-                                        placeholder="Client or company name"
-                                        value={form.clientName}
-                                        onChange={(e) =>
-                                            update("clientName", e.target.value)
-                                        }
-                                    />
+                    {step === 1 && (
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center gap-2">
+                                    <User className="h-5 w-5 text-primary" />
+                                    <CardTitle className="text-lg">
+                                        Bill To
+                                    </CardTitle>
+                                </div>
+                                <CardDescription>
+                                    Default client details for your invoices.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="clientName">
+                                            Client Name *
+                                        </Label>
+                                        <Input
+                                            id="clientName"
+                                            placeholder="Client or company name"
+                                            value={form.clientName}
+                                            onChange={(e) =>
+                                                update(
+                                                    "clientName",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="clientEmail">
+                                            Client Email
+                                        </Label>
+                                        <Input
+                                            id="clientEmail"
+                                            type="email"
+                                            placeholder="client@example.com"
+                                            value={form.clientEmail}
+                                            onChange={(e) =>
+                                                update(
+                                                    "clientEmail",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="clientEmail">
-                                        Client Email
+                                    <Label htmlFor="clientAddress">
+                                        Client Address
                                     </Label>
-                                    <Input
-                                        id="clientEmail"
-                                        type="email"
-                                        placeholder="client@example.com"
-                                        value={form.clientEmail}
+                                    <Textarea
+                                        id="clientAddress"
+                                        placeholder="Client address"
+                                        rows={3}
+                                        value={form.clientAddress}
                                         onChange={(e) =>
                                             update(
-                                                "clientEmail",
+                                                "clientAddress",
                                                 e.target.value,
                                             )
                                         }
                                     />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="clientAddress">
-                                    Client Address
-                                </Label>
-                                <Textarea
-                                    id="clientAddress"
-                                    placeholder="Client address"
-                                    rows={3}
-                                    value={form.clientAddress}
-                                    onChange={(e) =>
-                                        update("clientAddress", e.target.value)
-                                    }
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
-                {step === 2 && (
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center gap-2">
-                                <Landmark className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-lg">
-                                    Banking Details
-                                </CardTitle>
-                            </div>
-                            <CardDescription>
-                                Payment information shown on your invoices.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="bankName">
-                                        Bank Name *
-                                    </Label>
-                                    <Input
-                                        id="bankName"
-                                        placeholder="First National Bank"
-                                        value={form.bankName}
-                                        onChange={(e) =>
-                                            update("bankName", e.target.value)
-                                        }
-                                    />
+                    {step === 2 && (
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center gap-2">
+                                    <Landmark className="h-5 w-5 text-primary" />
+                                    <CardTitle className="text-lg">
+                                        Banking Details
+                                    </CardTitle>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="accountName">
-                                        Account Name
-                                    </Label>
-                                    <Input
-                                        id="accountName"
-                                        placeholder="Acme Corp"
-                                        value={form.accountName}
-                                        onChange={(e) =>
-                                            update(
-                                                "accountName",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
+                                <CardDescription>
+                                    Payment information shown on your invoices.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="bankName">
+                                            Bank Name *
+                                        </Label>
+                                        <Input
+                                            id="bankName"
+                                            placeholder="First National Bank"
+                                            value={form.bankName}
+                                            onChange={(e) =>
+                                                update(
+                                                    "bankName",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="accountName">
+                                            Account Name
+                                        </Label>
+                                        <Input
+                                            id="accountName"
+                                            placeholder="Acme Corp"
+                                            value={form.accountName}
+                                            onChange={(e) =>
+                                                update(
+                                                    "accountName",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="accountNumber">
-                                        Account Number *
-                                    </Label>
-                                    <Input
-                                        id="accountNumber"
-                                        placeholder="XXXX-XXXX-XXXX"
-                                        value={form.accountNumber}
-                                        onChange={(e) =>
-                                            update(
-                                                "accountNumber",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="accountNumber">
+                                            Account Number *
+                                        </Label>
+                                        <Input
+                                            id="accountNumber"
+                                            placeholder="XXXX-XXXX-XXXX"
+                                            value={form.accountNumber}
+                                            onChange={(e) =>
+                                                update(
+                                                    "accountNumber",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="routingNumber">
+                                            Routing / Sort Code
+                                        </Label>
+                                        <Input
+                                            id="routingNumber"
+                                            placeholder="XXXXXX"
+                                            value={form.routingNumber}
+                                            onChange={(e) =>
+                                                update(
+                                                    "routingNumber",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="routingNumber">
-                                        Routing / Sort Code
-                                    </Label>
-                                    <Input
-                                        id="routingNumber"
-                                        placeholder="XXXXXX"
-                                        value={form.routingNumber}
-                                        onChange={(e) =>
-                                            update(
-                                                "routingNumber",
-                                                e.target.value,
-                                            )
-                                        }
-                                    />
+                                <div className="grid gap-4 sm:grid-cols-2">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="iban">IBAN</Label>
+                                        <Input
+                                            id="iban"
+                                            placeholder="XX00 0000 0000 0000 0000 00"
+                                            value={form.iban}
+                                            onChange={(e) =>
+                                                update("iban", e.target.value)
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="swiftCode">
+                                            SWIFT / BIC Code
+                                        </Label>
+                                        <Input
+                                            id="swiftCode"
+                                            placeholder="XXXXXXXX"
+                                            value={form.swiftCode}
+                                            onChange={(e) =>
+                                                update(
+                                                    "swiftCode",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="grid gap-4 sm:grid-cols-2">
-                                <div className="space-y-2">
-                                    <Label htmlFor="iban">IBAN</Label>
-                                    <Input
-                                        id="iban"
-                                        placeholder="XX00 0000 0000 0000 0000 00"
-                                        value={form.iban}
-                                        onChange={(e) =>
-                                            update("iban", e.target.value)
-                                        }
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <Label htmlFor="swiftCode">
-                                        SWIFT / BIC Code
-                                    </Label>
-                                    <Input
-                                        id="swiftCode"
-                                        placeholder="XXXXXXXX"
-                                        value={form.swiftCode}
-                                        onChange={(e) =>
-                                            update("swiftCode", e.target.value)
-                                        }
-                                    />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                            </CardContent>
+                        </Card>
+                    )}
 
-                {step === 3 && (
-                    <Card>
-                        <CardHeader className="pb-4">
-                            <div className="flex items-center gap-2">
-                                <FileText className="h-5 w-5 text-primary" />
-                                <CardTitle className="text-lg">
-                                    Invoice Defaults
-                                </CardTitle>
-                            </div>
-                            <CardDescription>
-                                Default values applied to every new invoice.
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-3">
-                                <div className="space-y-2">
-                                    <Label htmlFor="currency">Currency</Label>
-                                    <Input
-                                        id="currency"
-                                        placeholder="USD"
-                                        value={form.currency}
-                                        onChange={(e) =>
-                                            update("currency", e.target.value)
-                                        }
-                                    />
+                    {step === 3 && (
+                        <Card>
+                            <CardHeader className="pb-4">
+                                <div className="flex items-center gap-2">
+                                    <FileText className="h-5 w-5 text-primary" />
+                                    <CardTitle className="text-lg">
+                                        Invoice Defaults
+                                    </CardTitle>
+                                </div>
+                                <CardDescription>
+                                    Default values applied to every new invoice.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                                <div className="grid gap-4 sm:grid-cols-3">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="currency">
+                                            Currency
+                                        </Label>
+                                        <Input
+                                            id="currency"
+                                            placeholder="USD"
+                                            value={form.currency}
+                                            onChange={(e) =>
+                                                update(
+                                                    "currency",
+                                                    e.target.value,
+                                                )
+                                            }
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="taxRate">
+                                            Tax Rate (%)
+                                        </Label>
+                                        <Input
+                                            id="taxRate"
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            step="0.1"
+                                            placeholder="0"
+                                            value={form.taxRate || ""}
+                                            onChange={(e) =>
+                                                setForm((prev) => ({
+                                                    ...prev,
+                                                    taxRate: Number(
+                                                        e.target.value,
+                                                    ),
+                                                }))
+                                            }
+                                        />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="taxRate">
-                                        Tax Rate (%)
+                                    <Label htmlFor="notes">
+                                        Default Notes / Footer
                                     </Label>
-                                    <Input
-                                        id="taxRate"
-                                        type="number"
-                                        min={0}
-                                        max={100}
-                                        step="0.1"
-                                        placeholder="0"
-                                        value={form.taxRate || ""}
+                                    <Textarea
+                                        id="notes"
+                                        placeholder="Thank you for your business!"
+                                        rows={2}
+                                        value={form.notes}
                                         onChange={(e) =>
-                                            setForm((prev) => ({
-                                                ...prev,
-                                                taxRate: Number(e.target.value),
-                                            }))
+                                            update("notes", e.target.value)
                                         }
                                     />
                                 </div>
-                            </div>
-                            <div className="space-y-2">
-                                <Label htmlFor="notes">
-                                    Default Notes / Footer
-                                </Label>
-                                <Textarea
-                                    id="notes"
-                                    placeholder="Thank you for your business!"
-                                    rows={2}
-                                    value={form.notes}
-                                    onChange={(e) =>
-                                        update("notes", e.target.value)
-                                    }
-                                />
-                            </div>
-                        </CardContent>
-                    </Card>
-                )}
+                            </CardContent>
+                        </Card>
+                    )}
+                </div>
 
-                {/* Navigation */}
-                <div className="flex justify-between">
+                {/* Navigation - fixed at bottom */}
+                <div className="flex-shrink-0 flex items-end justify-between">
                     <Button
                         variant="outline"
                         onClick={() => setStep((s) => s - 1)}
@@ -489,6 +519,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                         <ArrowLeft className="h-4 w-4" />
                         Back
                     </Button>
+
                     {isLastStep ? (
                         <Button
                             onClick={handleSave}
@@ -547,5 +578,6 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export { defaultTemplate };
 export default TemplateTab;

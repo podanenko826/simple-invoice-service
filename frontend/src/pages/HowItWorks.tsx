@@ -99,7 +99,7 @@ const HowItWorks = () => {
                     Invoices, made simple.
                 </h2>
                 <Link
-                    to="/dashboard"
+                    to="/login"
                     className="mt-8 inline-flex items-center justify-center gap-2 rounded-lg bg-primary px-7 py-3.5 text-sm font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all"
                 >
                     Start Creating

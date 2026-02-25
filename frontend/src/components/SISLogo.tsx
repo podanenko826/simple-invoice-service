@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import SISLogoIcon from "./SISLogoIcon";
 
 const SISLogo = ({
@@ -16,17 +17,21 @@ const SISLogo = ({
               : "text-2xl tracking-[0.22em]";
 
     return (
-        <div className="flex items-center gap-2.5">
-            <SISLogoIcon size={iconSize} />
-            <div className="flex flex-col">
-                <span className={`font-bold text-navy ${textClass}`}>SIS</span>
-                {showSubtitle && (
-                    <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium -mt-0.5">
-                        Simple Invoice Service
+        <Link to="/">
+            <div className="flex items-center gap-2.5">
+                <SISLogoIcon size={iconSize} />
+                <div className="flex flex-col">
+                    <span className={`font-bold text-navy ${textClass}`}>
+                        SIS
                     </span>
-                )}
+                    {showSubtitle && (
+                        <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium -mt-0.5">
+                            Simple Invoice Service
+                        </span>
+                    )}
+                </div>
             </div>
-        </div>
+        </Link>
     );
 };
 

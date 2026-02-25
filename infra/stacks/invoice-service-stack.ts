@@ -6,6 +6,7 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { Passwordless } from "./constructs/cognito-paswordless/cognito-paswordless.js";
+import { PublicWebsite } from "./constructs/public-websites/public-websites.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
 
@@ -17,6 +18,7 @@ export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceBucket: s3.Bucket;
     public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
+    public readonly website: PublicWebsite;
 
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
@@ -321,6 +323,16 @@ export class InvoiceServiceStack extends cdk.Stack {
             value: this.auth.userPoolClient.userPoolClientId,
             description: "Cognito User Pool Client ID",
             exportName: `${projectNamePrfix}-UserPoolClientId-${environment}`,
+        });
+
+        // Create public website with CloudFront distribution
+        this.website = new PublicWebsite(this, "PublicWebsite", {
+            userPoolId: this.auth.userPool.userPoolId,
+            userPoolClientId: this.auth.userPoolClient.userPoolClientId,
+            apiUrl: api.url,
+            // Optional: Add custom domain configuration
+            // certificateArn: "arn:aws:acm:us-east-1:ACCOUNT:certificate/CERT-ID",
+            // domainName: "invoice.example.com",
         });
     }
 }

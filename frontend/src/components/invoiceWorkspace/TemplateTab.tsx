@@ -63,7 +63,6 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     };
 
     const progress = ((step + 1) / steps.length) * 100;
-    const isLastStep = step === steps.length - 1;
     const StepIcon = steps[step].icon;
 
     return (
@@ -220,7 +219,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep((s) => s - 1)}
-                                    disabled={step === 0}
+                                    disabled={step <= 0}
                                     className="gap-2"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
@@ -308,7 +307,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep((s) => s - 1)}
-                                    disabled={step === 0}
+                                    disabled={step <= 0}
                                     className="gap-2"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
@@ -441,7 +440,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep((s) => s - 1)}
-                                    disabled={step === 0}
+                                    disabled={step <= 0}
                                     className="gap-2"
                                 >
                                     <ArrowLeft className="h-4 w-4" />
@@ -542,7 +541,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 <Button
                                     variant="outline"
                                     onClick={() => setStep((s) => s - 1)}
-                                    disabled={step === 0}
+                                    disabled={step <= 0}
                                     className="gap-2"
                                 >
                                     <ArrowLeft className="h-4 w-4" />

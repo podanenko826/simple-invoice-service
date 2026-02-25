@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables (contains sensitive AWS values)
+.env
+.env.local
+.env.*.local
+
+# Runtime configuration for production (contains sensitive AWS values)
+public/config.json

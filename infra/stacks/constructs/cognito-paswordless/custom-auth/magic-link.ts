@@ -13,15 +13,14 @@ import {
     UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 import {
-    SESClient,
-    SendEmailCommand,
-    MessageRejected,
-} from "@aws-sdk/client-ses";
-import {
     KMSClient,
     SignCommand,
     GetPublicKeyCommand,
 } from "@aws-sdk/client-kms";
+import {
+    SecretsManagerClient,
+    GetSecretValueCommand,
+} from "@aws-sdk/client-secrets-manager";
 import {
     logger,
     UserFacingError,
@@ -40,14 +39,14 @@ let config = {
         .map((href) => new URL(href))
         .map((url) => url.origin),
     /** The e-mail address that Magic Links will be sent from */
-    sesFromAddress: process.env.SES_FROM_ADDRESS,
-    /** The Amazon SES region, override e.g. to set a region where you are out of the SES sandbox */
-    sesRegion: process.env.SES_REGION || process.env.AWS_REGION,
+    emailFromAddress: process.env.EMAIL_FROM_ADDRESS,
+    /** SendGrid API Key Secret ARN */
+    sendgridApiKeySecretArn: process.env.SENDGRID_API_KEY_SECRET_ARN,
     /** KMS Key ID to use for generating Magic Links (signatures) */
     kmsKeyId: process.env.KMS_KEY_ID,
     /** The name of the DynamoDB table where (hashes of) Magic Links will be stored */
     dynamodbSecretsTableName: process.env.DYNAMODB_SECRETS_TABLE,
-    /** Function that will send the actual Magic Link e-mails. Override this to e.g. use another e-mail provider instead of Amazon SES */
+    /** Function that will send the actual Magic Link e-mails. Override this to e.g. use another e-mail provider instead of SendGrid */
     emailSender: sendEmailWithLink,
     /** A salt to use for storing hashes of magic links in the DynamoDB table */
     salt: process.env.STACK_ID,
@@ -67,22 +66,20 @@ function requireConfig<K extends keyof typeof config>(
 }
 
 export function configure(update?: Partial<typeof config>) {
-    const oldSesRegion = config.sesRegion;
     config = { ...config, ...update };
-    if (update && update.sesRegion !== oldSesRegion) {
-        ses = new SESClient({ region: config.sesRegion });
-    }
     return config;
 }
 
 const publicKeys: Record<string, ReturnType<typeof createPublicKey>> = {};
 const kms = new KMSClient({});
+const secretsManager = new SecretsManagerClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
     marshallOptions: {
         removeUndefinedValues: true,
     },
 });
-let ses = new SESClient({ region: config.sesRegion });
+
+let sendgridApiKey: string | undefined;
 
 export async function addChallengeToEvent(
     event: CreateAuthChallengeTriggerEvent
@@ -131,21 +128,32 @@ async function createEmailContent({
     userAttributes: { [name: string]: string };
 }) {
     return {
-        html: {
-            data: `<html><body><p>Your secret sign-in link: <a href="${secretLoginLink}">sign in</a></p>This link is valid for ${Math.floor(
-                config.secondsUntilExpiry / 60
-            )} minutes<p></p></body></html>`,
-            charSet: "UTF-8",
-        },
-        text: {
-            data: `Your secret sign-in link: ${secretLoginLink}`,
-            charSet: "UTF-8",
-        },
-        subject: {
-            data: "Your secret sign-in link",
-            charSet: "UTF-8",
-        },
+        html: `<html><body><p>Your secret sign-in link: <a href="${secretLoginLink}">sign in</a></p>This link is valid for ${Math.floor(
+            config.secondsUntilExpiry / 60
+        )} minutes<p></p></body></html>`,
+        text: `Your secret sign-in link: ${secretLoginLink}`,
+        subject: "Magic Link",
     };
+}
+
+async function getSendGridApiKey(): Promise<string> {
+    if (sendgridApiKey) {
+        return sendgridApiKey;
+    }
+
+    const secretArn = requireConfig("sendgridApiKeySecretArn");
+    const response = await secretsManager.send(
+        new GetSecretValueCommand({
+            SecretId: secretArn,
+        })
+    );
+
+    if (!response.SecretString) {
+        throw new Error("SendGrid API key not found in Secrets Manager");
+    }
+
+    sendgridApiKey = response.SecretString;
+    return sendgridApiKey;
 }
 
 async function sendEmailWithLink({
@@ -154,47 +162,47 @@ async function sendEmailWithLink({
 }: {
     emailAddress: string;
     content: {
-        html: { charSet: string; data: string };
-        text: { charSet: string; data: string };
-        subject: { charSet: string; data: string };
+        html: string;
+        text: string;
+        subject: string;
     };
     userAttributes: { [name: string]: string };
 }) {
-    await ses
-        .send(
-            new SendEmailCommand({
-                Destination: { ToAddresses: [emailAddress] },
-                Message: {
-                    Body: {
-                        Html: {
-                            Charset: content.html.charSet,
-                            Data: content.html.data,
-                        },
-                        Text: {
-                            Charset: content.text.charSet,
-                            Data: content.text.data,
-                        },
-                    },
-                    Subject: {
-                        Charset: content.subject.charSet,
-                        Data: content.subject.data,
-                    },
+    const apiKey = await getSendGridApiKey();
+    const fromAddress = requireConfig("emailFromAddress");
+
+    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            personalizations: [
+                {
+                    to: [{ email: emailAddress }],
                 },
-                Source: requireConfig("sesFromAddress"),
-            })
-        )
-        .catch((err) => {
-            if (
-                err instanceof MessageRejected &&
-                err.message.includes("Email address is not verified")
-            ) {
-                logger.error(err);
-                throw new UserFacingError(
-                    "E-mail address must still be verified in the e-mail service"
-                );
-            }
-            throw err;
-        });
+            ],
+            from: { email: fromAddress },
+            subject: content.subject,
+            content: [
+                {
+                    type: "text/plain",
+                    value: content.text,
+                },
+                {
+                    type: "text/html",
+                    value: content.html,
+                },
+            ],
+        }),
+    });
+
+    if (!response.ok) {
+        const errorText = await response.text();
+        logger.error("SendGrid API error:", errorText);
+        throw new UserFacingError("Failed to send magic link email");
+    }
 }
 
 async function createAndSendMagicLink(

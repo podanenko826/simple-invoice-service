@@ -1,11 +1,13 @@
-export const currencySymbols: Record<string, string> = {
-    EUR: "€",
-    USD: "$",
-    UAH: "₴",
-};
+// Re-export from centralized currency config for backward compatibility
+import { getCurrencySymbol, CURRENCIES } from "@/config/currencies";
 
-export const currencyNames: Record<string, string> = {
-    EUR: "Euro",
-    USD: "US Dollar",
-    UAH: "Ukrainian Hryvnia",
-};
+export const currencySymbols: Record<string, string> = Object.fromEntries(
+    CURRENCIES.map((c) => [c.code, c.symbol]),
+);
+
+export const currencyNames: Record<string, string> = Object.fromEntries(
+    CURRENCIES.map((c) => [c.code, c.name]),
+);
+
+// Helper function
+export { getCurrencySymbol };

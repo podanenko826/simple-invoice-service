@@ -6,19 +6,28 @@ import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
 import { Passwordless } from "./constructs/cognito-paswordless/cognito-paswordless.js";
+import { PublicWebsite } from "./constructs/public-websites/public-websites.js";
 import * as path from "path";
 import { fileURLToPath } from "url";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as targets from "aws-cdk-lib/aws-route53-targets";
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export interface InvoiceServiceStackProps extends cdk.StackProps {
+    readonly certificateArn?: string;
+    readonly domainName?: string;
+}
+
 export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceBucket: s3.Bucket;
     public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
+    public readonly website: PublicWebsite;
 
-    constructor(scope: Construct, id: string, props?: cdk.StackProps) {
+    constructor(scope: Construct, id: string, props: InvoiceServiceStackProps) {
         super(scope, id, props);
 
         const projectNamePrfix = "sis";
@@ -75,11 +84,18 @@ export class InvoiceServiceStack extends cdk.Stack {
         });
 
         // Cognito Passwordless Authentication
+        const allowedOrigins = ["http://localhost:5173"];
+        if (props.domainName) {
+            allowedOrigins.push(`https://${props.domainName}`);
+        }
+
+        // @todo check how we put this API KEY
         this.auth = new Passwordless(this, "Auth", {
-            allowedOrigins: ["http://localhost:5173"], // Vite dev server
+            allowedOrigins: allowedOrigins, // Vite dev server + production domain
             magicLink: {
-                sesFromAddress: "yalovechik2012@gmail.com",
-                sesRegion: "eu-west-1", // Match your Cognito region
+                emailFromAddress: "noreply@em5604.makeinvoices.app",
+                sendgridApiKey:
+                    "",
                 autoConfirmUsers: true,
             },
             logLevel: environment === "dev" ? "DEBUG" : "INFO",
@@ -202,6 +218,11 @@ export class InvoiceServiceStack extends cdk.Stack {
         this.invoiceBucket.grantRead(listInvoicesFunction);
 
         // Create API Gateway (without expensive cache cluster)
+        const apiCorsOrigins = ["http://localhost:5173"];
+        if (props.domainName) {
+            apiCorsOrigins.push(`https://${props.domainName}`);
+        }
+
         const api = new apigateway.RestApi(this, "InvoiceApi", {
             restApiName: `${projectNamePrfix}-invoice-api-${environment}`,
             description: "API for invoice management",
@@ -211,7 +232,7 @@ export class InvoiceServiceStack extends cdk.Stack {
                 tracingEnabled: true,
             },
             defaultCorsPreflightOptions: {
-                allowOrigins: ["http://localhost:5173"],
+                allowOrigins: apiCorsOrigins,
                 allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
                 allowHeaders: [
                     "Content-Type",
@@ -290,6 +311,34 @@ export class InvoiceServiceStack extends cdk.Stack {
             new apigateway.LambdaIntegration(deleteInvoiceFunction),
             authMethodOptions
         );
+
+        // Create public website with CloudFront distribution
+        this.website = new PublicWebsite(this, "PublicWebsite", {
+            userPoolId: this.auth.userPool.userPoolId,
+            userPoolClientId: this.auth.userPoolClient.userPoolClientId,
+            apiUrl: api.url,
+            certificateArn: props.certificateArn,
+            domainName: props.domainName,
+        });
+
+        // Create Route53 A record pointing to CloudFront
+        if (props.domainName) {
+            const hostedZone = route53.HostedZone.fromLookup(
+                this,
+                "HostedZone",
+                {
+                    domainName: props.domainName,
+                }
+            );
+
+            new route53.ARecord(this, "WebsiteAliasRecord", {
+                zone: hostedZone,
+                recordName: props.domainName,
+                target: route53.RecordTarget.fromAlias(
+                    new targets.CloudFrontTarget(this.website.distribution)
+                ),
+            });
+        }
 
         // Outputs
         new cdk.CfnOutput(this, "InvoiceBucketName", {

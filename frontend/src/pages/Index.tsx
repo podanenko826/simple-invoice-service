@@ -1,82 +1,88 @@
 import { Link } from "react-router-dom";
-import Header from "@/components/Header";
-import SISLogo from "@/components/SISLogo";
+import { ShieldCheck, ListFilter, Eye, Download } from "lucide-react";
 import SISLogoIcon from "@/components/SISLogoIcon";
 
 const Index = () => {
     return (
-        <div className="min-h-screen bg-background">
-            <Header />
+        <div className="min-h-screen bg-background flex flex-col">
+            {/* Hero Section */}
+            <main className="flex-1 flex flex-col min-h-screen items-center justify-center px-6 pt-16 pb-20">
+                {/* Logo icon large */}
+                <SISLogoIcon size={96} className="mb-4" />
 
-            {/* Hero */}
-            <section className="container flex flex-col items-center justify-center py-28 text-center">
-                <div className="mb-8 animate-float">
-                    <SISLogoIcon size={80} />
-                </div>
-                <h1 className="text-5xl font-extrabold tracking-tight text-navy sm:text-6xl">
+                {/* SIS wordmark */}
+                <h2 className="text-3xl font-bold tracking-[0.25em] text-foreground mb-10">
                     SIS
-                </h1>
-                <p className="mt-2 text-sm uppercase tracking-[0.22em] text-muted-foreground font-medium">
-                    Simple Invoice Service
-                </p>
-                <p className="mt-6 max-w-lg text-lg text-muted-foreground leading-relaxed">
-                    Modern invoicing for modern teams. Create, send, and track
-                    invoices in seconds — beautifully.
-                </p>
-                <div className="mt-10 flex gap-4">
-                    <Link
-                        to="/login"
-                        className="rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity"
-                    >
-                        Start Free
-                    </Link>
-                    <button className="rounded-lg border border-border px-6 py-3 text-sm font-semibold text-foreground hover:bg-muted transition-colors">
-                        Learn More
-                    </button>
-                </div>
-            </section>
+                </h2>
 
-            {/* Feature cards */}
-            <section className="container pb-24">
-                <div className="grid gap-6 sm:grid-cols-3">
+                {/* Headline */}
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground text-center leading-tight mb-5">
+                    Make invoices.
+                    <br />
+                    Free to use.
+                </h1>
+
+                {/* Subtext */}
+                <p className="text-lg text-muted-foreground text-center leading-relaxed max-w-md mb-12">
+                    A simple tool to build, preview, and
+                    <br />
+                    download your invoices as PDFs.
+                </p>
+
+                {/* CTA Button */}
+                <Link
+                    to="/login"
+                    className="inline-flex items-center justify-center rounded-xl bg-primary px-16 py-5 text-base font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all mb-5"
+                >
+                    Create Invoice Now
+                </Link>
+
+                {/* Trust badge */}
+                <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-5 py-2.5">
+                    <ShieldCheck className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-[11px] font-semibold tracking-[0.12em] uppercase text-muted-foreground">
+                        No credit card, no account, 100% free forever
+                    </span>
+                </div>
+            </main>
+
+            {/* Three Steps */}
+            <section className="pb-24 pt-8 px-6">
+                <div className="container max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 text-center">
                     {[
                         {
-                            title: "Lightning Fast",
-                            desc: "Generate professional invoices in under 30 seconds.",
+                            icon: ListFilter,
+                            title: "Enter Details",
+                            desc: "Fill in your items. We handle all formatting and math.",
                         },
                         {
-                            title: "Bank-Grade Security",
-                            desc: "Your financial data is encrypted end-to-end.",
+                            icon: Eye,
+                            title: "Preview",
+                            desc: "See your professional PDF live as you type.",
                         },
                         {
-                            title: "Smart Tracking",
-                            desc: "Real-time status updates and payment reminders.",
+                            icon: Download,
+                            title: "Download",
+                            desc: "Get your PDF instantly. No email gates, no waits.",
                         },
-                    ].map((f) => (
+                    ].map((step, i) => (
                         <div
-                            key={f.title}
-                            className="rounded-xl border border-border bg-card p-6 hover:shadow-lg transition-shadow"
+                            key={i}
+                            className="flex flex-col items-center gap-3"
                         >
-                            <h3 className="text-lg font-semibold text-foreground">
-                                {f.title}
+                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-muted mb-1">
+                                <step.icon className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                            <h3 className="text-sm font-bold text-foreground">
+                                {i + 1}. {step.title}
                             </h3>
-                            <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
-                                {f.desc}
+                            <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">
+                                {step.desc}
                             </p>
                         </div>
                     ))}
                 </div>
             </section>
-
-            {/* Footer */}
-            <footer className="border-t border-border py-8">
-                <div className="container flex items-center justify-between">
-                    <SISLogo size="small" />
-                    <p className="text-xs text-muted-foreground">
-                        © 2026 SIS. All rights reserved.
-                    </p>
-                </div>
-            </footer>
         </div>
     );
 };

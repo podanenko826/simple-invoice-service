@@ -396,7 +396,7 @@ const InvoicePreview = ({
 
                 {/* Payment info */}
                 {(template.bankName || template.accountNumber) && (
-                    <div className="mx-[6%] mb-[3%] mt-auto">
+                    <div className="mx-[6%] mb-[3%] mt-auto pt-[2%]">
                         <p
                             className="uppercase tracking-[0.12em] mb-[0.5em]"
                             style={{

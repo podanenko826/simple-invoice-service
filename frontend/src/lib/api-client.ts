@@ -1,17 +1,17 @@
 import type { InvoiceTemplate } from "@/components/invoiceWorkspace/TemplateTab";
 import type { GeneratedInvoice } from "@/components/invoiceWorkspace/GenerateTab";
 import { retrieveTokens } from "./auth/storage";
+import { getRuntimeConfig } from "@/config/runtime-config";
 
-const API_URL = import.meta.env.VITE_API_URL;
+export class ApiError extends Error {
+    public status: number;
+    public data?: any;
 
-class ApiError extends Error {
-    constructor(
-        message: string,
-        public status: number,
-        public data?: any,
-    ) {
+    constructor(message: string, status: number, data?: any) {
         super(message);
         this.name = "ApiError";
+        this.status = status;
+        this.data = data;
     }
 }
 
@@ -25,7 +25,8 @@ async function fetchWithAuth(
         throw new ApiError("Not authenticated", 401);
     }
 
-    const response = await fetch(`${API_URL}${endpoint}`, {
+    const config = getRuntimeConfig();
+    const response = await fetch(`${config.apiUrl}${endpoint}`, {
         ...options,
         headers: {
             "Content-Type": "application/json",
@@ -93,5 +94,3 @@ export const invoiceApi = {
         });
     },
 };
-
-export { ApiError };

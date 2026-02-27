@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Settings, Clock } from "lucide-react";
 import TemplateTab, {
-    defaultTemplate,
     type InvoiceTemplate,
 } from "@/components/invoiceWorkspace/TemplateTab";
+import { defaultTemplate } from "@/components/invoiceWorkspace/templateDefaults";
 import GenerateTab, {
     type GeneratedInvoice,
 } from "@/components/invoiceWorkspace/GenerateTab";
@@ -17,6 +16,7 @@ import {
     saveInvoice,
 } from "@/lib/storage";
 import { toast } from "sonner";
+import { exportInvoicePdf } from "@/lib/exportPdf";
 
 const InvoiceWorkSpace = () => {
     const [template, setTemplate] = useState<InvoiceTemplate>(defaultTemplate);
@@ -69,7 +69,7 @@ const InvoiceWorkSpace = () => {
         try {
             await saveInvoice(invoice);
             setInvoices((prev) => [invoice, ...prev]);
-            setActiveTab("history");
+            await exportInvoicePdf(invoice);
             toast.success("Invoice generated successfully");
         } catch (error) {
             console.error("Error generating invoice:", error);
@@ -82,8 +82,7 @@ const InvoiceWorkSpace = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-background">
-                <Header />
-                <main className="container py-10 max-w-6xl">
+                <main className="container py-10">
                     <div className="flex items-center justify-center py-16">
                         <p className="text-muted-foreground">Loading...</p>
                     </div>
@@ -94,9 +93,7 @@ const InvoiceWorkSpace = () => {
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
-
-            <main className="container py-10 max-w-6xl">
+            <main className="container py-10">
                 <Tabs
                     value={activeTab}
                     onValueChange={setActiveTab}

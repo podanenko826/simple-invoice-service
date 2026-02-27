@@ -1,0 +1,10 @@
+{
+  "hosted-zone:account=350610702366:domainName=makeinvoices.app:region=us-east-1": {
+    "Id": "/hostedzone/Z0761259AUY62N2OYDH5",
+    "Name": "makeinvoices.app."
+  },
+  "hosted-zone:account=350610702366:domainName=makeinvoices.app:region=eu-west-1": {
+    "Id": "/hostedzone/Z0761259AUY62N2OYDH5",
+    "Name": "makeinvoices.app."
+  }
+}

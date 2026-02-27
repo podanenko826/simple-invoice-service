@@ -94,8 +94,6 @@ export class InvoiceServiceStack extends cdk.Stack {
             allowedOrigins: allowedOrigins, // Vite dev server + production domain
             magicLink: {
                 emailFromAddress: "noreply@em5604.makeinvoices.app",
-                sendgridApiKey:
-                    "",
                 autoConfirmUsers: true,
             },
             logLevel: environment === "dev" ? "DEBUG" : "INFO",

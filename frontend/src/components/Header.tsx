@@ -2,7 +2,7 @@ import { useState } from "react";
 import { MessageSquare } from "lucide-react";
 import SISLogo from "./SISLogo";
 import FeedbackDialog from "./FeedbackDialog";
-import { Link, useLocation } from "react-router-dom";
+import {useLocation } from "react-router-dom";
 
 const Header = () => {
     const [feedbackOpen, setFeedbackOpen] = useState(false);

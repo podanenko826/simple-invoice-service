@@ -41,8 +41,6 @@ export class Passwordless extends Construct {
             magicLink: {
                 /** The e-mail address you want to use as the FROM address of the magic link e-mails */
                 emailFromAddress: string;
-                /** SendGrid API Key (will be stored in Secrets Manager) */
-                sendgridApiKey: string;
                 kmsKeyProps?: cdk.aws_kms.KeyProps;
                 secretsTableProps?: TableProps;
                 secondsUntilExpiry?: cdk.Duration;
@@ -70,16 +68,16 @@ export class Passwordless extends Construct {
     ) {
         super(scope, id);
 
-        // Create Secrets Manager secret for SendGrid API key
-        const sendgridApiKeySecret = new cdk.aws_secretsmanager.Secret(
+        // Create SSM Parameter for SendGrid API key with placeholder
+        // Update the parameter value manually in AWS Console after deployment
+        const sendgridApiKeyParameter = new cdk.aws_ssm.StringParameter(
             this,
-            `SendGridApiKeySecret${id}`,
+            `SendGridApiKeyParameter${id}`,
             {
-                secretName: `${id}-sendgrid-api-key`,
-                secretStringValue: cdk.SecretValue.unsafePlainText(
-                    props.magicLink.sendgridApiKey
-                ),
-                description: "SendGrid API key for magic link emails",
+                parameterName: `/${id}/sendgrid-api-key`,
+                description: "SendGrid API key for magic link emails - UPDATE THIS VALUE",
+                stringValue: "PLACEHOLDER_UPDATE_IN_AWS_CONSOLE",
+                tier: cdk.aws_ssm.ParameterTier.STANDARD,
             }
         );
 
@@ -145,7 +143,7 @@ export class Passwordless extends Construct {
             LOG_LEVEL: props.logLevel ?? "INFO",
             MAGIC_LINK_ENABLED: "TRUE",
             EMAIL_FROM_ADDRESS: props.magicLink.emailFromAddress,
-            SENDGRID_API_KEY_SECRET_ARN: sendgridApiKeySecret.secretArn,
+            SENDGRID_API_KEY_PARAMETER_NAME: sendgridApiKeyParameter.parameterName,
             KMS_KEY_ID:
                 this.kmsKey instanceof cdk.aws_kms.Alias
                     ? this.kmsKey.aliasName
@@ -185,7 +183,7 @@ export class Passwordless extends Construct {
 
         // Grant permissions to Create Auth Challenge Lambda
         this.secretsTable.grantReadWriteData(this.createAuthChallengeFn);
-        sendgridApiKeySecret.grantRead(this.createAuthChallengeFn);
+        sendgridApiKeyParameter.grantRead(this.createAuthChallengeFn);
 
         // Grant KMS signing permissions
         if ((this.kmsKey as cdk.aws_kms.IAlias).aliasName) {
@@ -369,6 +367,7 @@ export class Passwordless extends Construct {
                 preferredUsername: false,
                 email: true,
             },
+            selfSignUpEnabled: true, // Allow users to sign up themselves
             ...props.userPoolProps,
             lambdaTriggers: {
                 ...props.userPoolProps?.lambdaTriggers,
@@ -392,7 +391,7 @@ export class Passwordless extends Construct {
                 userPassword: false,
                 userSrp: false,
             },
-            preventUserExistenceErrors: true,
+            preventUserExistenceErrors: false, // Allow frontend to detect and create users
         });
     }
 }

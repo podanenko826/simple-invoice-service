@@ -18,9 +18,9 @@ import {
     GetPublicKeyCommand,
 } from "@aws-sdk/client-kms";
 import {
-    SecretsManagerClient,
-    GetSecretValueCommand,
-} from "@aws-sdk/client-secrets-manager";
+    SSMClient,
+    GetParameterCommand,
+} from "@aws-sdk/client-ssm";
 import {
     logger,
     UserFacingError,
@@ -40,8 +40,8 @@ let config = {
         .map((url) => url.origin),
     /** The e-mail address that Magic Links will be sent from */
     emailFromAddress: process.env.EMAIL_FROM_ADDRESS,
-    /** SendGrid API Key Secret ARN */
-    sendgridApiKeySecretArn: process.env.SENDGRID_API_KEY_SECRET_ARN,
+    /** SSM Parameter name for SendGrid API Key */
+    sendgridApiKeyParameterName: process.env.SENDGRID_API_KEY_PARAMETER_NAME,
     /** KMS Key ID to use for generating Magic Links (signatures) */
     kmsKeyId: process.env.KMS_KEY_ID,
     /** The name of the DynamoDB table where (hashes of) Magic Links will be stored */
@@ -72,7 +72,7 @@ export function configure(update?: Partial<typeof config>) {
 
 const publicKeys: Record<string, ReturnType<typeof createPublicKey>> = {};
 const kms = new KMSClient({});
-const secretsManager = new SecretsManagerClient({});
+const ssm = new SSMClient({});
 const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
     marshallOptions: {
         removeUndefinedValues: true,
@@ -111,7 +111,9 @@ export async function addChallengeToEvent(
     // in the Cognito app client. If it is *not* checked, the client receives the error, which potentially allows for
     // user enumeration. Additional guardrails are advisable.
     if (event.request.userNotFound) {
-        logger.info("User not found");
+        logger.info("User not found - will create user automatically");
+        // User will be auto-created by Cognito after this Lambda completes successfully
+        // We still send the magic link email
     }
     // Current implementation has no use for publicChallengeParameters - feel free to provide them
     // if you want to use them in your front-end:
@@ -141,19 +143,21 @@ async function getSendGridApiKey(): Promise<string> {
         return sendgridApiKey;
     }
 
-    const secretArn = requireConfig("sendgridApiKeySecretArn");
-    const response = await secretsManager.send(
-        new GetSecretValueCommand({
-            SecretId: secretArn,
+    const parameterName = requireConfig("sendgridApiKeyParameterName");
+    const response = await ssm.send(
+        new GetParameterCommand({
+            Name: parameterName,
+            WithDecryption: true,
         })
     );
 
-    if (!response.SecretString) {
-        throw new Error("SendGrid API key not found in Secrets Manager");
+    if (!response.Parameter?.Value) {
+        throw new Error("SendGrid API key not found in SSM Parameter Store");
     }
 
-    sendgridApiKey = response.SecretString;
-    return sendgridApiKey;
+    const apiKey = response.Parameter.Value;
+    sendgridApiKey = apiKey;
+    return apiKey;
 }
 
 async function sendEmailWithLink({
@@ -280,14 +284,8 @@ async function createAndSendMagicLink(
         "base64url"
     )}.${Buffer.from(signature).toString("base64url")}`;
     logger.debug("Sending magic link ...");
-    // Toggle userNotFound error with "Prevent user existence errors" in the Cognito app client. (see above)
-    if (event.request.userNotFound) {
-        logger.debug("Pretending to send magic link ...");
-        await new Promise((resolve) =>
-            setTimeout(resolve, Math.random() * 200)
-        );
-        return;
-    }
+    // Send email even if user doesn't exist yet - Cognito will auto-create the user
+    // when the Lambda completes successfully with userNotFound flag
     await config.emailSender({
         emailAddress: event.request.userAttributes.email,
         content: await config.contentCreator.call(undefined, {

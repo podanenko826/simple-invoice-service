@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { FileText, Settings, Clock } from "lucide-react";
 import TemplateTab, {
@@ -83,7 +82,6 @@ const InvoiceWorkSpace = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-background">
-                <Header />
                 <main className="container py-10">
                     <div className="flex items-center justify-center py-16">
                         <p className="text-muted-foreground">Loading...</p>
@@ -95,8 +93,6 @@ const InvoiceWorkSpace = () => {
 
     return (
         <div className="min-h-screen bg-background">
-            <Header />
-
             <main className="container py-10">
                 <Tabs
                     value={activeTab}

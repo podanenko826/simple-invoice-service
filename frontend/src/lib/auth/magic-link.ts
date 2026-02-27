@@ -6,6 +6,7 @@ import {
     assertIsAuthenticatedResponse,
     initiateAuth,
     respondToAuthChallenge,
+    signUp,
     type Session,
 } from "./cognito-api.js";
 import {
@@ -77,6 +78,69 @@ export const requestSignInLink = ({
             return res;
         } catch (err) {
             debug?.(err);
+            // If user doesn't exist, create them first
+            if (
+                err instanceof Error &&
+                (err.name === "UserNotFoundException" ||
+                    err.message.includes("User does not exist"))
+            ) {
+                debug?.("User not found, creating user...");
+                try {
+                    // Sign up the user with a random password (won't be used for passwordless auth)
+                    const randomPassword =
+                        Array.from(crypto.getRandomValues(new Uint8Array(32)))
+                            .map((b) => b.toString(16).padStart(2, "0"))
+                            .join("") + "Aa1!";
+
+                    await signUp({
+                        username,
+                        password: randomPassword,
+                        userAttributes: [{ name: "email", value: username }],
+                        abort: abort.signal,
+                    });
+
+                    debug?.("User created, retrying magic link request...");
+
+                    // Retry the magic link request
+                    let res = await initiateAuth({
+                        authflow: "CUSTOM_AUTH",
+                        authParameters: {
+                            USERNAME: username,
+                        },
+                        abort: abort.signal,
+                    });
+                    assertIsChallengeResponse(res);
+                    username = res.ChallengeParameters.USERNAME;
+                    res = await respondToAuthChallenge({
+                        challengeName: "CUSTOM_CHALLENGE",
+                        challengeResponses: {
+                            ANSWER: "__dummy__",
+                            USERNAME: username,
+                        },
+                        clientMetadata: {
+                            signInMethod: "MAGIC_LINK",
+                            redirectUri:
+                                redirectUri ||
+                                currentBrowserLocationWithoutFragmentIdentifier(),
+                            alreadyHaveMagicLink: "no",
+                        },
+                        session: res.Session,
+                        abort: abort.signal,
+                    });
+                    assertIsChallengeResponse(res);
+                    if (username && res.Session) {
+                        await storage.setItem(
+                            `Passwordless.${clientId}.${username}.session`,
+                            res.Session,
+                        );
+                    }
+                    statusCb?.("SIGNIN_LINK_REQUESTED");
+                    return res;
+                } catch (signUpErr) {
+                    debug?.("Failed to create user:", signUpErr);
+                    throw signUpErr;
+                }
+            }
             if (currentStatus) {
                 statusCb?.("SIGNIN_LINK_REQUEST_FAILED");
             }

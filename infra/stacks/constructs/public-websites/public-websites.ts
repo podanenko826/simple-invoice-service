@@ -5,8 +5,8 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as s3deploy from "aws-cdk-lib/aws-s3-deployment";
 import * as acm from "aws-cdk-lib/aws-certificatemanager";
 import { Construct } from "constructs";
-import * as path from "path";
 import { fileURLToPath } from "url";
+import * as path from "path";
 
 export interface PublicWebsiteProps {
     readonly userPoolId: string;
@@ -76,12 +76,12 @@ export class PublicWebsite extends Construct {
                     contentSecurityPolicy: {
                         contentSecurityPolicy: [
                             "default-src 'self'",
-                            `connect-src 'self' https://cognito-idp.${cdk.Stack.of(this).region}.amazonaws.com ${props.apiUrl}`,
+                            `connect-src 'self' data: blob: https://cognito-idp.${cdk.Stack.of(this).region}.amazonaws.com ${props.apiUrl}`,
                             "font-src 'self' data:",
                             "img-src 'self' data: blob:",
                             "media-src 'self' blob:",
                             "style-src 'self' 'unsafe-inline'",
-                            "script-src 'self'",
+                            "script-src 'self' 'wasm-unsafe-eval'",
                         ].join("; "),
                         override: true,
                     },

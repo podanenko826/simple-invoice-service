@@ -5,16 +5,23 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
 import InvoiceWorkspace from "./pages/InvoiceWorkspace";
-import HowItWorks from "./pages/HowItWorks";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
 
 function App() {
     return (
         <AuthProvider>
             <BrowserRouter>
+                <Header />
                 <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/login" element={<Login />} />
-                    <Route path="/how-it-works" element={<HowItWorks />} />
+                    <Route path="/about" element={<About />} />
+                    <Route path="/privacy" element={<Privacy />} />
+                    <Route path="/terms" element={<Terms />} />
                     <Route
                         path="/workspace"
                         element={
@@ -24,6 +31,7 @@ function App() {
                         }
                     />
                 </Routes>
+                <Footer />
             </BrowserRouter>
         </AuthProvider>
     );

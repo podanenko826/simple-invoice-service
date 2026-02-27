@@ -23,14 +23,6 @@ const Header = () => {
                                 Feedback
                             </button>
                         )}
-                        {(location.pathname === "/" ||
-                            location.pathname === "/how-it-works") && (
-                            <Link to="/login">
-                                <button className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity">
-                                    Get Started
-                                </button>
-                            </Link>
-                        )}
                     </nav>
                 </div>
             </header>

@@ -418,12 +418,12 @@ const GenerateTab = ({
                     </Card>
                 </div>
 
-                <div className="flex justify-end gap-3">
+                <div className="flex flex-col sm:flex-row justify-end gap-3">
                     <Button
                         onClick={() => setFeedbackDialogOpen(true)}
                         size="lg"
                         variant="ghost"
-                        className="gap-2 text-muted-foreground"
+                        className="gap-2 text-muted-foreground w-full sm:w-auto"
                     >
                         <MessageSquare className="h-4 w-4" />
                         Send Feedback
@@ -433,7 +433,7 @@ const GenerateTab = ({
                         size="lg"
                         variant="outline"
                         disabled={!canGenerate}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                     >
                         <Eye className="h-4 w-4" />
                         Preview PDF
@@ -442,7 +442,7 @@ const GenerateTab = ({
                         onClick={handleGenerate}
                         size="lg"
                         disabled={!canGenerate}
-                        className="gap-2"
+                        className="gap-2 w-full sm:w-auto"
                     >
                         <FileText className="h-4 w-4" />
                         Generate Invoice

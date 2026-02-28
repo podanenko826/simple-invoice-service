@@ -5,7 +5,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Plus, Trash2, AlertCircle, Eye, MessageSquare } from "lucide-react";
+import {
+    FileText,
+    Plus,
+    Trash2,
+    AlertCircle,
+    Eye,
+    MessageSquare,
+} from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -433,7 +440,7 @@ const GenerateTab = ({
                         size="lg"
                         variant="outline"
                         disabled={!canGenerate}
-                        className="gap-2 w-full sm:w-auto"
+                        className="gap-2 w-full sm:w-auto text-muted-foreground"
                     >
                         <Eye className="h-4 w-4" />
                         Preview PDF
@@ -472,12 +479,16 @@ const GenerateTab = ({
             </div>
 
             {/* Feedback Dialog */}
-            <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
+            <Dialog
+                open={feedbackDialogOpen}
+                onOpenChange={setFeedbackDialogOpen}
+            >
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Send Feedback</DialogTitle>
                         <DialogDescription>
-                            Have a suggestion or need something? Let us know how we can improve your invoicing experience.
+                            Have a suggestion or need something? Let us know how
+                            we can improve your invoicing experience.
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-4">
@@ -488,7 +499,9 @@ const GenerateTab = ({
                                 placeholder="e.g., I need a field for purchase order numbers, or it would be great to add discounts..."
                                 rows={5}
                                 value={feedbackMessage}
-                                onChange={(e) => setFeedbackMessage(e.target.value)}
+                                onChange={(e) =>
+                                    setFeedbackMessage(e.target.value)
+                                }
                                 disabled={submittingFeedback}
                             />
                         </div>
@@ -503,9 +516,13 @@ const GenerateTab = ({
                         </Button>
                         <Button
                             onClick={handleSubmitFeedback}
-                            disabled={submittingFeedback || !feedbackMessage.trim()}
+                            disabled={
+                                submittingFeedback || !feedbackMessage.trim()
+                            }
                         >
-                            {submittingFeedback ? "Sending..." : "Send Feedback"}
+                            {submittingFeedback
+                                ? "Sending..."
+                                : "Send Feedback"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

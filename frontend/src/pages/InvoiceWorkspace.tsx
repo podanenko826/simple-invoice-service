@@ -71,6 +71,9 @@ const InvoiceWorkSpace = () => {
             setInvoices((prev) => [invoice, ...prev]);
             await exportInvoicePdf(invoice);
             toast.success("Invoice generated successfully");
+            
+            // Trigger usage refresh by dispatching a custom event
+            window.dispatchEvent(new CustomEvent('invoice-generated'));
         } catch (error) {
             console.error("Error generating invoice:", error);
             toast.error("Failed to generate invoice");

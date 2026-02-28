@@ -23,6 +23,7 @@ export interface InvoiceServiceStackProps extends cdk.StackProps {
 
 export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceBucket: s3.Bucket;
+    public readonly feedbackBucket: s3.Bucket;
     public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
     public readonly website: PublicWebsite;
@@ -46,6 +47,27 @@ export class InvoiceServiceStack extends cdk.Stack {
             versioned: true,
             removalPolicy: removalPolicy,
             autoDeleteObjects: false,
+        });
+
+        // S3 Bucket for storing user feedback (cheaper than DynamoDB)
+        this.feedbackBucket = new s3.Bucket(this, "FeedbackBucket", {
+            bucketName: `${projectNamePrfix}-feedback-${account}`,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            versioned: false,
+            removalPolicy: removalPolicy,
+            autoDeleteObjects: environment === "dev",
+            lifecycleRules: [
+                {
+                    // Move to cheaper storage after 90 days
+                    transitions: [
+                        {
+                            storageClass: s3.StorageClass.GLACIER,
+                            transitionAfter: cdk.Duration.days(90),
+                        },
+                    ],
+                },
+            ],
         });
 
         // DynamoDB Table for all invoice data (templates + invoices)
@@ -103,6 +125,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         const lambdaEnvironment = {
             TABLE_NAME: this.invoiceDataTable.tableName,
             BUCKET_NAME: this.invoiceBucket.bucketName,
+            FEEDBACK_BUCKET: this.feedbackBucket.bucketName,
         };
 
         const lambdaProps = {
@@ -202,10 +225,39 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
+        const getUsageFunction = new NodejsFunction(
+            this,
+            "GetUsageFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-usage.ts"
+                ),
+                handler: "handler",
+                description: "Get user usage statistics",
+            }
+        );
+
+        const saveFeedbackFunction = new NodejsFunction(
+            this,
+            "SaveFeedbackFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/save-feedback.ts"
+                ),
+                handler: "handler",
+                description: "Save user feedback to S3",
+            }
+        );
+
         // Grant DynamoDB permissions
         this.invoiceDataTable.grantReadData(getTemplateFunction);
         this.invoiceDataTable.grantReadData(listInvoicesFunction);
         this.invoiceDataTable.grantReadData(getInvoiceFunction);
+        this.invoiceDataTable.grantReadData(getUsageFunction);
         this.invoiceDataTable.grantWriteData(saveTemplateFunction);
         this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
         this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
@@ -214,6 +266,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         this.invoiceBucket.grantReadWrite(saveInvoiceFunction);
         this.invoiceBucket.grantRead(getInvoiceFunction);
         this.invoiceBucket.grantRead(listInvoicesFunction);
+        this.feedbackBucket.grantWrite(saveFeedbackFunction);
 
         // Create API Gateway (without expensive cache cluster)
         const apiCorsOrigins = ["http://localhost:5173"];
@@ -307,6 +360,26 @@ export class InvoiceServiceStack extends cdk.Stack {
         invoice.addMethod(
             "DELETE",
             new apigateway.LambdaIntegration(deleteInvoiceFunction),
+            authMethodOptions
+        );
+
+        // Usage endpoint
+        const usage = api.root.addResource("usage");
+
+        // GET /usage
+        usage.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getUsageFunction),
+            authMethodOptions
+        );
+
+        // Feedback endpoint
+        const feedback = api.root.addResource("feedback");
+
+        // POST /feedback
+        feedback.addMethod(
+            "POST",
+            new apigateway.LambdaIntegration(saveFeedbackFunction),
             authMethodOptions
         );
 

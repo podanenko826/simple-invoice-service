@@ -1,6 +1,5 @@
 import { Link } from "react-router-dom";
 import { ShieldCheck, ListFilter, Eye, Download, Users, ChevronDown, Shield, EyeOff, Database } from "lucide-react";
-import SISLogoIcon from "@/components/SISLogoIcon";
 import { useEffect, useState } from "react";
 import { getRuntimeConfig } from "@/config/runtime-config";
 
@@ -44,26 +43,23 @@ const Index = () => {
         <div className="min-h-screen bg-background flex flex-col">
             {/* Hero Section */}
             <main className="relative flex-1 flex flex-col min-h-screen items-center justify-center px-6 pt-16 pb-20">
-                {/* Logo icon large */}
-                <SISLogoIcon size={96} className="mb-4" />
-
-                {/* SIS wordmark */}
-                <h2 className="text-3xl font-bold tracking-[0.25em] text-foreground mb-10">
-                    SIS
-                </h2>
+                {/* Tagline */}
+                <p className="text-sm text-muted-foreground/60 mb-8 tracking-wide">
+                    Do one thing. Do it well.
+                </p>
 
                 {/* Headline */}
                 <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground text-center leading-tight mb-5">
                     Make invoices.
                     <br />
-                    Free to use.
+                    Nothing else.
                 </h1>
 
                 {/* Subtext */}
                 <p className="text-lg text-muted-foreground text-center leading-relaxed max-w-md mb-12">
-                    A simple tool to build, preview, and
+                    A OneThing tool to build, preview and
                     <br />
-                    download your invoices as PDFs.
+                    download invoices as PDFs.
                 </p>
 
                 {/* CTA Button */}

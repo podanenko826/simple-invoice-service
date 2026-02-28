@@ -5,10 +5,19 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { FileText, Plus, Trash2, AlertCircle, Eye } from "lucide-react";
+import { FileText, Plus, Trash2, AlertCircle, Eye, MessageSquare } from "lucide-react";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 import type { InvoiceTemplate } from "./TemplateTab";
 import InvoicePreview from "./InvoicePreview";
 import { previewInvoicePdf } from "@/lib/exportPdf";
+import { feedbackApi } from "@/lib/api-client";
 import { toast } from "sonner";
 
 interface LineItem {
@@ -63,6 +72,9 @@ const GenerateTab = ({
             unitPrice: 0,
         },
     ]);
+    const [feedbackDialogOpen, setFeedbackDialogOpen] = useState(false);
+    const [feedbackMessage, setFeedbackMessage] = useState("");
+    const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
     const addLineItem = () => {
         setLineItems((prev) => [
@@ -160,6 +172,29 @@ const GenerateTab = ({
         } catch (error) {
             toast.error("Failed to preview PDF");
             console.error(error);
+        }
+    };
+
+    const handleSubmitFeedback = async () => {
+        if (!feedbackMessage.trim()) {
+            toast.error("Please enter your feedback");
+            return;
+        }
+
+        setSubmittingFeedback(true);
+        try {
+            await feedbackApi.submit({
+                message: feedbackMessage,
+                page: "generate-invoice",
+            });
+            toast.success("Thank you! Your feedback has been received.");
+            setFeedbackDialogOpen(false);
+            setFeedbackMessage("");
+        } catch (error) {
+            toast.error("Failed to submit feedback. Please try again.");
+            console.error(error);
+        } finally {
+            setSubmittingFeedback(false);
         }
     };
 
@@ -385,6 +420,15 @@ const GenerateTab = ({
 
                 <div className="flex justify-end gap-3">
                     <Button
+                        onClick={() => setFeedbackDialogOpen(true)}
+                        size="lg"
+                        variant="ghost"
+                        className="gap-2 text-muted-foreground"
+                    >
+                        <MessageSquare className="h-4 w-4" />
+                        Send Feedback
+                    </Button>
+                    <Button
                         onClick={handlePreviewPdf}
                         size="lg"
                         variant="outline"
@@ -426,6 +470,46 @@ const GenerateTab = ({
                     />
                 </div>
             </div>
+
+            {/* Feedback Dialog */}
+            <Dialog open={feedbackDialogOpen} onOpenChange={setFeedbackDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Send Feedback</DialogTitle>
+                        <DialogDescription>
+                            Have a suggestion or need something? Let us know how we can improve your invoicing experience.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="feedback">Your feedback</Label>
+                            <Textarea
+                                id="feedback"
+                                placeholder="e.g., I need a field for purchase order numbers, or it would be great to add discounts..."
+                                rows={5}
+                                value={feedbackMessage}
+                                onChange={(e) => setFeedbackMessage(e.target.value)}
+                                disabled={submittingFeedback}
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setFeedbackDialogOpen(false)}
+                            disabled={submittingFeedback}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            onClick={handleSubmitFeedback}
+                            disabled={submittingFeedback || !feedbackMessage.trim()}
+                        >
+                            {submittingFeedback ? "Sending..." : "Send Feedback"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

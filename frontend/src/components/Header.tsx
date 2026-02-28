@@ -37,7 +37,7 @@ const Header = () => {
         <>
             <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-card/80 backdrop-blur-md">
                 <div className="container flex h-16 items-center justify-between">
-                    <SISLogo />
+                    <SISLogo showSubtitle />
                     <nav className="flex items-center gap-6">
                         {location.pathname === "/workspace" && (
                             <>

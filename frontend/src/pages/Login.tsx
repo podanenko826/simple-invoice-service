@@ -1,7 +1,6 @@
-import SISLogoIcon from "@/components/SISLogoIcon";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Mail, ArrowRight, ListFilter, Eye, Download } from "lucide-react";
+import { ArrowRight, Lock, Shield } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth/AuthContext";
@@ -57,36 +56,37 @@ const Login = () => {
         status === "SIGNING_IN_WITH_LINK";
 
     return (
-        <div className="min-h-screen bg-background flex flex-col">
-            {/* Hero / Login */}
-            <main className="min-h-screen flex flex-col items-center justify-center px-6 pt-16 pb-20">
-                <SISLogoIcon size={96} className="mb-4" />
-
-                <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl">
-                    SIS
-                </h1>
-                <p className="mt-2 text-sm uppercase tracking-[0.22em] text-muted-foreground font-medium">
-                    Simple Invoice Service
-                </p>
-
-                <p className="mt-8 max-w-md text-center text-foreground text-2xl font-bold leading-relaxed">
-                    Three steps. That's it.
-                </p>
+        <div className="min-h-screen bg-background flex items-center justify-center px-6">
+            <div className="w-full max-w-md space-y-6">
+                {/* Headline */}
+                <div className="text-center space-y-2">
+                    <h1 className="text-4xl font-semibold text-foreground">
+                        Start your invoice.
+                    </h1>
+                    <p className="text-muted-foreground">
+                        Enter your email. We'll send a secure magic link.
+                    </p>
+                </div>
 
                 {/* Form */}
-                <div className="mt-10 w-full max-w-sm space-y-4">
+                <div className="space-y-3">
                     <Input
                         type="email"
-                        placeholder="Enter your email"
+                        placeholder="your@email.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         disabled={isLoading}
-                        className="h-12 rounded-lg border-border bg-card text-sm"
+                        className="h-12 text-base"
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && email && !isLoading) {
+                                handleRequestLink();
+                            }
+                        }}
                     />
                     <Button
                         onClick={handleRequestLink}
                         disabled={!email || isLoading}
-                        className="w-full h-12 rounded-lg text-sm font-semibold gap-2"
+                        className="w-full h-12 text-base font-semibold gap-2 shadow-md"
                     >
                         {isLoading ? (
                             <>
@@ -97,84 +97,57 @@ const Login = () => {
                             </>
                         ) : (
                             <>
-                                Log in with Email
+                                Send magic link
                                 <ArrowRight className="h-4 w-4" />
                             </>
                         )}
                     </Button>
+
+                    {/* Trust line */}
+                    <p className="text-center text-xs text-muted-foreground/60 pt-1">
+                        No password required. No account setup. No signup forms.
+                    </p>
                 </div>
 
-                <div className="mt-4 flex flex-col items-center gap-2 text-center">
-                    <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                        <Mail className="h-3.5 w-3.5" />
-                        <span>
-                            We'll send you a magic link — no password needed
-                        </span>
+                {/* Trust indicators */}
+                <div className="flex items-center justify-center gap-6 pt-2">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+                        <Lock className="h-3.5 w-3.5" />
+                        <span>256-bit encryption</span>
                     </div>
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground/50">
+                        <Shield className="h-3.5 w-3.5" />
+                        <span>Secure authentication</span>
+                    </div>
+                </div>
 
+                {/* Status messages */}
+                <div className="text-center space-y-2">
                     {status === "SIGNIN_LINK_REQUESTED" && (
-                        <div className="mt-2 text-sm text-primary">
-                            ✅ Magic link sent! Check your email.
-                        </div>
+                        <p className="text-sm text-primary">
+                            ✓ Magic link sent! Check your email.
+                        </p>
                     )}
 
                     {status === "SIGNIN_LINK_EXPIRED" && (
-                        <div className="mt-2 text-sm text-destructive">
-                            ⚠️ Magic link has expired. Please request a new one.
-                        </div>
+                        <p className="text-sm text-destructive">
+                            Magic link has expired. Please request a new one.
+                        </p>
                     )}
 
                     {status === "INVALID_SIGNIN_LINK" && (
-                        <div className="mt-2 text-sm text-destructive">
-                            ⚠️ Invalid magic link. Please request a new one.
-                        </div>
+                        <p className="text-sm text-destructive">
+                            Invalid magic link. Please request a new one.
+                        </p>
                     )}
 
                     {error && (
-                        <div className="mt-2 text-sm text-destructive">
-                            ⚠️ {error}
-                        </div>
+                        <p className="text-sm text-destructive">
+                            {error}
+                        </p>
                     )}
                 </div>
-            </main>
-
-            {/* Three Steps */}
-            <section className="pb-24 pt-8 px-6">
-                <div className="container max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-12 text-center">
-                    {[
-                        {
-                            icon: ListFilter,
-                            title: "Enter Details",
-                            desc: "Fill in your items. We handle all formatting and math automatically.",
-                        },
-                        {
-                            icon: Eye,
-                            title: "Preview",
-                            desc: "See your professional PDF live as you type. Real-time accuracy.",
-                        },
-                        {
-                            icon: Download,
-                            title: "Download",
-                            desc: "Get your PDF instantly. No email gates, no waits, no accounts.",
-                        },
-                    ].map((step, i) => (
-                        <div
-                            key={i}
-                            className="flex flex-col items-center gap-3"
-                        >
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-muted mb-1">
-                                <step.icon className="h-6 w-6 text-muted-foreground" />
-                            </div>
-                            <h3 className="text-sm font-bold text-primary">
-                                {i + 1}. {step.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed max-w-[220px]">
-                                {step.desc}
-                            </p>
-                        </div>
-                    ))}
-                </div>
-            </section>
+            </div>
         </div>
     );
 };

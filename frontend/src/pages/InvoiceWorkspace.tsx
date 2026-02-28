@@ -14,6 +14,7 @@ import {
     saveTemplate,
     loadInvoices,
     saveInvoice,
+    deleteInvoice,
 } from "@/lib/storage";
 import { toast } from "sonner";
 import { exportInvoicePdf } from "@/lib/exportPdf";
@@ -77,6 +78,29 @@ const InvoiceWorkSpace = () => {
         } catch (error) {
             console.error("Error generating invoice:", error);
             toast.error("Failed to generate invoice");
+        }
+    };
+
+    const handleDeleteInvoice = async (invoiceId: string) => {
+        try {
+            await deleteInvoice(invoiceId);
+            setInvoices((prev) => prev.filter((inv) => inv.id !== invoiceId));
+            toast.success("Invoice deleted successfully");
+        } catch (error) {
+            console.error("Error deleting invoice:", error);
+            toast.error("Failed to delete invoice");
+        }
+    };
+
+    const handleBatchDeleteInvoices = async (invoiceIds: string[]) => {
+        try {
+            // Delete all invoices in parallel
+            await Promise.all(invoiceIds.map((id) => deleteInvoice(id)));
+            setInvoices((prev) => prev.filter((inv) => !invoiceIds.includes(inv.id)));
+            toast.success(`${invoiceIds.length} invoice${invoiceIds.length !== 1 ? 's' : ''} deleted successfully`);
+        } catch (error) {
+            console.error("Error deleting invoices:", error);
+            toast.error("Failed to delete some invoices");
         }
     };
 
@@ -148,7 +172,11 @@ const InvoiceWorkSpace = () => {
                     </TabsContent>
 
                     <TabsContent value="history" className="mt-6">
-                        <HistoryTab invoices={invoices} />
+                        <HistoryTab 
+                            invoices={invoices} 
+                            onDelete={handleDeleteInvoice}
+                            onBatchDelete={handleBatchDeleteInvoices}
+                        />
                     </TabsContent>
                 </Tabs>
             </main>

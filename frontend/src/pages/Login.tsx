@@ -69,10 +69,8 @@ const Login = () => {
                     Simple Invoice Service
                 </p>
 
-                <p className="mt-8 max-w-md text-center text-muted-foreground text-lg leading-relaxed">
-                    Fill your invoice template once.
-                    <br />
-                    Generate monthly invoices in seconds.
+                <p className="mt-8 max-w-md text-center text-foreground text-2xl font-bold leading-relaxed">
+                    Three steps. That's it.
                 </p>
 
                 {/* Form */}

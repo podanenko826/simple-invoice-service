@@ -152,7 +152,7 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
         <>
             <Card>
                 {selectedInvoices.size > 0 && (
-                    <div className="flex items-center justify-between px-6 py-3 border-b bg-muted/30">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 border-b bg-muted/30 gap-2">
                         <span className="text-sm font-medium">
                             {selectedInvoices.size} invoice{selectedInvoices.size !== 1 ? 's' : ''} selected
                         </span>
@@ -160,14 +160,16 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                             variant="destructive"
                             size="sm"
                             onClick={handleBatchDeleteClick}
-                            className="gap-2"
+                            className="gap-2 w-full sm:w-auto"
                         >
                             <Trash2 className="h-4 w-4" />
                             Delete Selected
                         </Button>
                     </div>
                 )}
-                <CardContent className="p-0">
+                
+                {/* Desktop Table View */}
+                <CardContent className="p-0 hidden md:block">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -268,10 +270,87 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                         </TableBody>
                     </Table>
                 </CardContent>
+
+                {/* Mobile Card View */}
+                <CardContent className="p-4 md:hidden space-y-3">
+                    {currentInvoices.map((invoice) => (
+                        <div
+                            key={invoice.id}
+                            className="border border-border rounded-lg p-4 space-y-3"
+                        >
+                            <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1 min-w-0">
+                                    <Checkbox
+                                        checked={selectedInvoices.has(invoice.id)}
+                                        onCheckedChange={(checked) =>
+                                            handleSelectInvoice(invoice.id, checked as boolean)
+                                        }
+                                        aria-label={`Select ${invoice.invoiceNumber}`}
+                                        className="mt-1"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="font-semibold text-foreground truncate">
+                                            {invoice.invoiceNumber}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground truncate">
+                                            {invoice.clientName || "—"}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground mt-1">
+                                            {new Date(invoice.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                    <div className="font-semibold text-foreground">
+                                        {invoice.total.toFixed(2)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 pt-2 border-t border-border">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 gap-2"
+                                    disabled={previewingId === invoice.id}
+                                    onClick={() => handlePreview(invoice)}
+                                >
+                                    {previewingId === invoice.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Eye className="h-4 w-4" />
+                                    )}
+                                    Preview
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1 gap-2"
+                                    disabled={exportingId === invoice.id}
+                                    onClick={() => handleExport(invoice)}
+                                >
+                                    {exportingId === invoice.id ? (
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                    ) : (
+                                        <Download className="h-4 w-4" />
+                                    )}
+                                    Download
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    onClick={() => handleDeleteClick(invoice)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                </CardContent>
                 {totalPages > 1 && (
-                    <div className="flex items-center justify-between px-6 py-4 border-t">
+                    <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t gap-3">
                         <div className="text-sm text-muted-foreground">
-                            Showing {startIndex + 1}-{Math.min(endIndex, invoices.length)} of {invoices.length} invoices
+                            Showing {startIndex + 1}-{Math.min(endIndex, invoices.length)} of {invoices.length}
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
@@ -282,7 +361,7 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                 className="gap-1"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                                Previous
+                                <span className="hidden sm:inline">Previous</span>
                             </Button>
                             <div className="flex items-center gap-1">
                                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
@@ -324,7 +403,7 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                 disabled={currentPage === totalPages}
                                 className="gap-1"
                             >
-                                Next
+                                <span className="hidden sm:inline">Next</span>
                                 <ChevronRight className="h-4 w-4" />
                             </Button>
                         </div>

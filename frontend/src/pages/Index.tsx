@@ -2,10 +2,56 @@ import { Link } from "react-router-dom";
 import { ShieldCheck, ListFilter, Eye, Download, Users, ChevronDown, Shield, EyeOff, Database } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getRuntimeConfig } from "@/config/runtime-config";
+import { useAuth } from "@/lib/auth/AuthContext";
+
+const faqData = [
+    {
+        q: "Is it really free?",
+        a: "Yes, 100% free. No hidden fees, no premium tiers, no credit card required. Create unlimited invoices forever.",
+    },
+    {
+        q: "Do I need to create an account?",
+        a: "Yes, a simple email-based account helps us save your templates and invoice history securely. No password needed - we use magic link authentication.",
+    },
+    {
+        q: "Is my data secure?",
+        a: "Absolutely. Your data is encrypted and stored securely in AWS. We follow industry best practices and never share your information with third parties.",
+    },
+    {
+        q: "Can I customize my invoices?",
+        a: "Yes! You can customize your company details, client information, payment terms, and add your own notes to each invoice.",
+    },
+];
 
 const Index = () => {
     const [totalInvoices, setTotalInvoices] = useState<number | null>(null);
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
+    const { isAuthenticated } = useAuth();
+
+    useEffect(() => {
+        // Add FAQ structured data for SEO
+        const faqSchema = {
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": faqData.map(faq => ({
+                "@type": "Question",
+                "name": faq.q,
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": faq.a
+                }
+            }))
+        };
+
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.text = JSON.stringify(faqSchema);
+        document.head.appendChild(script);
+
+        return () => {
+            document.head.removeChild(script);
+        };
+    }, []);
 
     useEffect(() => {
         // Fetch global usage stats for social proof
@@ -63,12 +109,21 @@ const Index = () => {
                 </p>
 
                 {/* CTA Button */}
-                <Link
-                    to="/login"
-                    className="inline-flex items-center justify-center rounded-xl bg-primary px-16 py-5 text-base font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all mb-5"
-                >
-                    Create Invoice Now
-                </Link>
+                {isAuthenticated ? (
+                    <Link
+                        to="/workspace"
+                        className="inline-flex items-center justify-center rounded-xl bg-primary px-16 py-5 text-base font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all mb-5"
+                    >
+                        Go to Workspace
+                    </Link>
+                ) : (
+                    <Link
+                        to="/login"
+                        className="inline-flex items-center justify-center rounded-xl bg-primary px-16 py-5 text-base font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all mb-5"
+                    >
+                        Create Invoice Now
+                    </Link>
+                )}
 
                 {/* Trust badge */}
                 <div className="inline-flex items-center gap-2 rounded-full border border-border bg-muted/50 px-5 py-2.5 mb-3">
@@ -191,24 +246,7 @@ const Index = () => {
                         Frequently Asked Questions
                     </h2>
                     <div className="space-y-6">
-                        {[
-                            {
-                                q: "Is it really free?",
-                                a: "Yes, 100% free. No hidden fees, no premium tiers, no credit card required. Create unlimited invoices forever.",
-                            },
-                            {
-                                q: "Do I need to create an account?",
-                                a: "Yes, a simple email-based account helps us save your templates and invoice history securely. No password needed - we use magic link authentication.",
-                            },
-                            {
-                                q: "Is my data secure?",
-                                a: "Absolutely. Your data is encrypted and stored securely in AWS. We follow industry best practices and never share your information with third parties.",
-                            },
-                            {
-                                q: "Can I customize my invoices?",
-                                a: "Yes! You can customize your company details, client information, payment terms, and add your own notes to each invoice.",
-                            },
-                        ].map((faq, i) => (
+                        {faqData.map((faq, i) => (
                             <div key={i} className="border-b border-border pb-6 last:border-0">
                                 <h3 className="font-semibold text-foreground mb-2">
                                     {faq.q}
@@ -224,7 +262,7 @@ const Index = () => {
                             to="/about"
                             className="text-sm text-primary hover:underline"
                         >
-                            Have more questions? Learn more about SIS →
+                            Have more questions? Learn more about OneThing Invoice →
                         </Link>
                     </div>
                 </div>

@@ -126,29 +126,30 @@ const InvoiceWorkSpace = () => {
                     onValueChange={setActiveTab}
                     className="w-full"
                 >
-                    <TabsList className="w-full h-14 rounded-xl bg-muted/60 p-1.5 gap-1">
+                    <TabsList className="w-full h-auto sm:h-14 rounded-xl bg-muted/60 p-1.5 gap-1 grid grid-cols-3">
                         <TabsTrigger
                             value="generate"
-                            className="flex-1 h-full rounded-lg text-sm font-medium gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                            className="h-12 sm:h-full rounded-lg text-xs sm:text-sm font-medium gap-1 sm:gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm flex-col sm:flex-row"
                         >
                             <FileText className="h-4 w-4" />
-                            Generate
+                            <span className="hidden sm:inline">Generate</span>
+                            <span className="sm:hidden">New</span>
                         </TabsTrigger>
                         <TabsTrigger
                             value="template"
-                            className="flex-1 h-full rounded-lg text-sm font-medium gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                            className="h-12 sm:h-full rounded-lg text-xs sm:text-sm font-medium gap-1 sm:gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm flex-col sm:flex-row"
                         >
                             <Settings className="h-4 w-4" />
                             Template
                         </TabsTrigger>
                         <TabsTrigger
                             value="history"
-                            className="flex-1 h-full rounded-lg text-sm font-medium gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm"
+                            className="h-12 sm:h-full rounded-lg text-xs sm:text-sm font-medium gap-1 sm:gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm flex-col sm:flex-row"
                         >
                             <Clock className="h-4 w-4" />
                             History
                             {invoices.length > 0 && (
-                                <span className="ml-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold">
+                                <span className="ml-0 sm:ml-1 rounded-full bg-primary/10 text-primary px-1.5 sm:px-2 py-0.5 text-xs font-semibold">
                                     {invoices.length}
                                 </span>
                             )}

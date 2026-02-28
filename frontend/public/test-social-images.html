@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Images Test</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #333; }
+        .status { 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .image-preview {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .image-preview img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .specs {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Social Media Images Test</h1>
+    
+    <div id="status"></div>
+    
+    <div id="images"></div>
+    
+    <div style="margin-top: 30px; padding: 20px; background: white; border-radius: 8px;">
+        <h2>Next Steps:</h2>
+        <ol>
+            <li>If images are missing, create them using <code>create-social-images.html</code></li>
+            <li>Place them in <code>frontend/public/</code> folder</li>
+            <li>Refresh this page to verify</li>
+            <li>Deploy your site</li>
+            <li>Test with social media validators</li>
+        </ol>
+    </div>
+
+    <script>
+        const images = [
+            { name: 'og-image.png', width: 1200, height: 630, desc: 'Open Graph (Facebook, LinkedIn)' },
+            { name: 'twitter-image.png', width: 1200, height: 600, desc: 'Twitter Card' }
+        ];
+
+        let allGood = true;
+        const statusDiv = document.getElementById('status');
+        const imagesDiv = document.getElementById('images');
+
+        images.forEach(img => {
+            const imgElement = new Image();
+            imgElement.src = img.name;
+            
+            imgElement.onload = function() {
+                const correct = this.width === img.width && this.height === img.height;
+                
+                if (correct) {
+                    statusDiv.innerHTML += `
+                        <div class="status success">
+                            ✅ ${img.name} - Correct size (${this.width}x${this.height})
+                        </div>
+                    `;
+                    
+                    imagesDiv.innerHTML += `
+                        <div class="image-preview">
+                            <h3>${img.desc}</h3>
+                            <img src="${img.name}" alt="${img.name}">
+                            <div class="specs">
+                                Size: ${this.width}x${this.height}px | 
+                                File: ${img.name}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    allGood = false;
+                    statusDiv.innerHTML += `
+                        <div class="status warning">
+                            ⚠️ ${img.name} - Wrong size! Expected ${img.width}x${img.height}, got ${this.width}x${this.height}
+                        </div>
+                    `;
+                }
+            };
+            
+            imgElement.onerror = function() {
+                allGood = false;
+                statusDiv.innerHTML += `
+                    <div class="status error">
+                        ❌ ${img.name} - Not found! Please create this image.
+                    </div>
+                `;
+            };
+        });
+
+        // Check after 2 seconds
+        setTimeout(() => {
+            if (allGood && statusDiv.children.length === images.length) {
+                statusDiv.innerHTML += `
+                    <div class="status success">
+                        <strong>🎉 All images are ready!</strong><br>
+                        You can now deploy your site and test with social media validators.
+                    </div>
+                `;
+            }
+        }, 2000);
+    </script>
+</body>
+</html>

@@ -5,9 +5,9 @@ const Footer = () => {
     <footer className="border-t border-border bg-muted/40 py-5 px-6">
       <div className="container flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span className="font-bold text-foreground tracking-[0.15em] text-sm">SIS</span>
+          <span className="font-bold text-foreground tracking-[0.15em] text-sm">OneThing</span>
           <span className="text-border">|</span>
-          <span>© 2025 Simple Invoice Service</span>
+          <span>© 2025 OneThing Invoice</span>
           <span className="text-border hidden sm:inline">|</span>
           <span className="flex items-center gap-1.5">
             Made in <span className="text-base">🇺🇦</span>

@@ -12,9 +12,13 @@ const Login = () => {
     const [email, setEmail] = useState("");
     const [status, setStatus] = useState<BusyState | IdleState | "">("");
     const [error, setError] = useState("");
+    const [lastRequestTime, setLastRequestTime] = useState<number>(0);
+    const [cooldownRemaining, setCooldownRemaining] = useState<number>(0);
     const navigate = useNavigate();
     const { reloadTokens } = useAuth();
     const hasProcessedLink = useRef(false);
+
+    const COOLDOWN_SECONDS = 60;
 
     // Check for magic link in URL on page load
     useEffect(() => {
@@ -38,8 +42,30 @@ const Login = () => {
         });
     }, [navigate, reloadTokens]);
 
+    // Cooldown timer
+    useEffect(() => {
+        if (cooldownRemaining > 0) {
+            const timer = setInterval(() => {
+                setCooldownRemaining((prev) => Math.max(0, prev - 1));
+            }, 1000);
+            return () => clearInterval(timer);
+        }
+    }, [cooldownRemaining]);
+
     const handleRequestLink = () => {
+        const now = Date.now();
+        const timeSinceLastRequest = (now - lastRequestTime) / 1000;
+
+        if (timeSinceLastRequest < COOLDOWN_SECONDS && lastRequestTime > 0) {
+            const remaining = Math.ceil(COOLDOWN_SECONDS - timeSinceLastRequest);
+            setError(`Please wait ${remaining} seconds before requesting another link`);
+            return;
+        }
+
         setError("");
+        setLastRequestTime(now);
+        setCooldownRemaining(COOLDOWN_SECONDS);
+
         const { signInLinkRequested } = requestSignInLink({
             username: email,
             statusCb: setStatus,
@@ -48,12 +74,15 @@ const Login = () => {
         signInLinkRequested.catch((err) => {
             console.error("Error requesting magic link:", err);
             setError(err.message);
+            setCooldownRemaining(0); // Reset cooldown on error
         });
     };
 
     const isLoading =
         status === "REQUESTING_SIGNIN_LINK" ||
         status === "SIGNING_IN_WITH_LINK";
+    
+    const isDisabled = !email || isLoading || cooldownRemaining > 0;
 
     return (
         <div className="min-h-screen bg-background flex items-center justify-center px-6">
@@ -78,14 +107,14 @@ const Login = () => {
                         disabled={isLoading}
                         className="h-12 text-base"
                         onKeyDown={(e) => {
-                            if (e.key === "Enter" && email && !isLoading) {
+                            if (e.key === "Enter" && email && !isDisabled) {
                                 handleRequestLink();
                             }
                         }}
                     />
                     <Button
                         onClick={handleRequestLink}
-                        disabled={!email || isLoading}
+                        disabled={isDisabled}
                         className="w-full h-12 text-base font-semibold gap-2 shadow-md"
                     >
                         {isLoading ? (
@@ -95,6 +124,8 @@ const Login = () => {
                                     ? "Sending..."
                                     : "Signing in..."}
                             </>
+                        ) : cooldownRemaining > 0 ? (
+                            <>Wait {cooldownRemaining}s</>
                         ) : (
                             <>
                                 Send magic link

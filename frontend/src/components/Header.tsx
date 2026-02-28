@@ -1,15 +1,24 @@
 import { useState, useEffect } from "react";
-import { MessageSquare, TrendingUp } from "lucide-react";
+import { MessageSquare, TrendingUp, LogOut } from "lucide-react";
 import SISLogo from "./SISLogo";
 import FeedbackDialog from "./FeedbackDialog";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { usageApi, type UsageStats } from "@/lib/api-client";
 import { Badge } from "./ui/badge";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { Button } from "./ui/button";
 
 const Header = () => {
     const [feedbackOpen, setFeedbackOpen] = useState(false);
     const [usage, setUsage] = useState<UsageStats | null>(null);
     const location = useLocation();
+    const navigate = useNavigate();
+    const { signOut, isAuthenticated } = useAuth();
+
+    const handleSignOut = async () => {
+        await signOut();
+        navigate("/");
+    };
 
     useEffect(() => {
         if (location.pathname === "/workspace") {
@@ -57,6 +66,17 @@ const Header = () => {
                                     Feedback
                                 </button>
                             </>
+                        )}
+                        {isAuthenticated && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={handleSignOut}
+                                className="gap-1.5"
+                            >
+                                <LogOut className="h-4 w-4" />
+                                Sign out
+                            </Button>
                         )}
                     </nav>
                 </div>

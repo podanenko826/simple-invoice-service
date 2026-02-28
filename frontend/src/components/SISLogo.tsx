@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import SISLogoIcon from "./SISLogoIcon";
 
 const SISLogo = ({
     showSubtitle = false,
@@ -9,24 +8,32 @@ const SISLogo = ({
     size?: "small" | "default" | "large";
 }) => {
     const iconSize = size === "large" ? 48 : size === "small" ? 28 : 36;
-    const textClass =
+    const textSize =
         size === "large"
-            ? "text-3xl tracking-[0.25em]"
+            ? "text-3xl"
             : size === "small"
-              ? "text-lg tracking-[0.2em]"
-              : "text-2xl tracking-[0.22em]";
+              ? "text-lg"
+              : "text-2xl";
+    const subtitleSize = size === "large" ? "text-sm" : size === "small" ? "text-[11px]" : "text-xs";
 
     return (
         <Link to="/">
-            <div className="flex items-center gap-2.5">
-                <SISLogoIcon size={iconSize} />
-                <div className="flex flex-col">
-                    <span className={`font-bold text-navy ${textClass}`}>
-                        SIS
+            <div className="flex items-center gap-3">
+                {/* Blue square icon */}
+                <div 
+                    className="bg-primary rounded-md flex-shrink-0" 
+                    style={{ 
+                        width: iconSize, 
+                        height: iconSize 
+                    }}
+                />
+                <div className="flex flex-col leading-none">
+                    <span className={`font-semibold text-foreground ${textSize}`}>
+                        OneThing
                     </span>
                     {showSubtitle && (
-                        <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground font-medium -mt-0.5">
-                            Simple Invoice Service
+                        <span className={`text-muted-foreground/70 font-normal ${subtitleSize} mt-0.5`}>
+                            Invoice
                         </span>
                     )}
                 </div>

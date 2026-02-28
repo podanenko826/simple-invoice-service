@@ -11,6 +11,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
+import { Monitoring, MonitoringThresholds } from "./constructs/monitoring/monitoring.js";
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -19,13 +20,17 @@ const __dirname = path.dirname(__filename);
 export interface InvoiceServiceStackProps extends cdk.StackProps {
     readonly certificateArn?: string;
     readonly domainName?: string;
+    readonly alertEmail?: string;
+    readonly monitoringThresholds?: MonitoringThresholds;
 }
 
 export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceBucket: s3.Bucket;
+    public readonly feedbackBucket: s3.Bucket;
     public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
     public readonly website: PublicWebsite;
+    public readonly api: apigateway.RestApi;
 
     constructor(scope: Construct, id: string, props: InvoiceServiceStackProps) {
         super(scope, id, props);
@@ -46,6 +51,27 @@ export class InvoiceServiceStack extends cdk.Stack {
             versioned: true,
             removalPolicy: removalPolicy,
             autoDeleteObjects: false,
+        });
+
+        // S3 Bucket for storing user feedback (cheaper than DynamoDB)
+        this.feedbackBucket = new s3.Bucket(this, "FeedbackBucket", {
+            bucketName: `${projectNamePrfix}-feedback-${account}`,
+            encryption: s3.BucketEncryption.S3_MANAGED,
+            blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+            versioned: false,
+            removalPolicy: removalPolicy,
+            autoDeleteObjects: environment === "dev",
+            lifecycleRules: [
+                {
+                    // Move to cheaper storage after 90 days
+                    transitions: [
+                        {
+                            storageClass: s3.StorageClass.GLACIER,
+                            transitionAfter: cdk.Duration.days(90),
+                        },
+                    ],
+                },
+            ],
         });
 
         // DynamoDB Table for all invoice data (templates + invoices)
@@ -103,6 +129,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         const lambdaEnvironment = {
             TABLE_NAME: this.invoiceDataTable.tableName,
             BUCKET_NAME: this.invoiceBucket.bucketName,
+            FEEDBACK_BUCKET: this.feedbackBucket.bucketName,
         };
 
         const lambdaProps = {
@@ -202,10 +229,54 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
+        const getUsageFunction = new NodejsFunction(
+            this,
+            "GetUsageFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-usage.ts"
+                ),
+                handler: "handler",
+                description: "Get user usage statistics",
+            }
+        );
+
+        const saveFeedbackFunction = new NodejsFunction(
+            this,
+            "SaveFeedbackFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/save-feedback.ts"
+                ),
+                handler: "handler",
+                description: "Save user feedback to S3",
+            }
+        );
+
+        const getGlobalStatsFunction = new NodejsFunction(
+            this,
+            "GetGlobalStatsFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-global-stats.ts"
+                ),
+                handler: "handler",
+                description: "Get global usage statistics (public)",
+            }
+        );
+
         // Grant DynamoDB permissions
         this.invoiceDataTable.grantReadData(getTemplateFunction);
         this.invoiceDataTable.grantReadData(listInvoicesFunction);
         this.invoiceDataTable.grantReadData(getInvoiceFunction);
+        this.invoiceDataTable.grantReadData(getUsageFunction);
+        this.invoiceDataTable.grantReadData(getGlobalStatsFunction);
         this.invoiceDataTable.grantWriteData(saveTemplateFunction);
         this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
         this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
@@ -214,6 +285,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         this.invoiceBucket.grantReadWrite(saveInvoiceFunction);
         this.invoiceBucket.grantRead(getInvoiceFunction);
         this.invoiceBucket.grantRead(listInvoicesFunction);
+        this.feedbackBucket.grantWrite(saveFeedbackFunction);
 
         // Create API Gateway (without expensive cache cluster)
         const apiCorsOrigins = ["http://localhost:5173"];
@@ -242,6 +314,9 @@ export class InvoiceServiceStack extends cdk.Stack {
                 allowCredentials: true,
             },
         });
+
+        // Store API reference for monitoring
+        this.api = api;
 
         // Create Cognito authorizer
         const authorizer = new apigateway.CognitoUserPoolsAuthorizer(
@@ -310,6 +385,37 @@ export class InvoiceServiceStack extends cdk.Stack {
             authMethodOptions
         );
 
+        // Usage endpoint
+        const usage = api.root.addResource("usage");
+
+        // GET /usage
+        usage.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getUsageFunction),
+            authMethodOptions
+        );
+
+        // Feedback endpoint
+        const feedback = api.root.addResource("feedback");
+
+        // POST /feedback
+        feedback.addMethod(
+            "POST",
+            new apigateway.LambdaIntegration(saveFeedbackFunction),
+            authMethodOptions
+        );
+
+        // Stats endpoint (public - no auth required)
+        const stats = api.root.addResource("stats");
+        const globalStats = stats.addResource("global");
+
+        // GET /stats/global (public)
+        globalStats.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getGlobalStatsFunction)
+            // No auth required for public stats
+        );
+
         // Create public website with CloudFront distribution
         this.website = new PublicWebsite(this, "PublicWebsite", {
             userPoolId: this.auth.userPool.userPoolId,
@@ -335,6 +441,17 @@ export class InvoiceServiceStack extends cdk.Stack {
                 target: route53.RecordTarget.fromAlias(
                     new targets.CloudFrontTarget(this.website.distribution)
                 ),
+            });
+        }
+
+        // Add monitoring if alertEmail is provided
+        if (props.alertEmail) {
+            new Monitoring(this, "Monitoring", {
+                api: api,
+                userPool: this.auth.userPool,
+                alertEmail: props.alertEmail,
+                environment: environment,
+                thresholds: props.monitoringThresholds,
             });
         }
 

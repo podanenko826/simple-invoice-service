@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageSquare, Send } from "lucide-react";
 import { toast } from "sonner";
+import { feedbackApi } from "@/lib/api-client";
+import { useLocation } from "react-router-dom";
 
 interface FeedbackDialogProps {
   open: boolean;
@@ -19,12 +21,27 @@ interface FeedbackDialogProps {
 
 const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
   const [message, setMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const location = useLocation();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!message.trim()) return;
-    toast.success("Thanks for your feedback!");
-    setMessage("");
-    onOpenChange(false);
+    
+    setSubmitting(true);
+    try {
+      await feedbackApi.submit({
+        message: message.trim(),
+        page: location.pathname,
+      });
+      toast.success("Thanks for your feedback!");
+      setMessage("");
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Failed to submit feedback:", error);
+      toast.error("Failed to submit feedback. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -45,14 +62,23 @@ const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           className="resize-none"
+          disabled={submitting}
         />
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={submitting}
+          >
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={!message.trim()} className="gap-2">
+          <Button 
+            onClick={handleSubmit} 
+            disabled={!message.trim() || submitting} 
+            className="gap-2"
+          >
             <Send className="h-4 w-4" />
-            Send Feedback
+            {submitting ? "Sending..." : "Send Feedback"}
           </Button>
         </DialogFooter>
       </DialogContent>

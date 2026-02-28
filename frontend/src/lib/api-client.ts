@@ -94,3 +94,33 @@ export const invoiceApi = {
         });
     },
 };
+
+// Usage API
+export interface UsageStats {
+    invoiceCount: number;
+    lastInvoiceDate: string | null;
+    updatedAt?: string | null;
+}
+
+export const usageApi = {
+    async get(): Promise<UsageStats> {
+        const response = await fetchWithAuth("/usage");
+        return await response.json();
+    },
+};
+
+// Feedback API
+export interface FeedbackRequest {
+    message: string;
+    rating?: number;
+    page?: string;
+}
+
+export const feedbackApi = {
+    async submit(feedback: FeedbackRequest): Promise<void> {
+        await fetchWithAuth("/feedback", {
+            method: "POST",
+            body: JSON.stringify(feedback),
+        });
+    },
+};

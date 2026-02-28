@@ -8,6 +8,10 @@ const Footer = () => {
           <span className="font-bold text-foreground tracking-[0.15em] text-sm">SIS</span>
           <span className="text-border">|</span>
           <span>© 2025 Simple Invoice Service</span>
+          <span className="text-border hidden sm:inline">|</span>
+          <span className="flex items-center gap-1.5">
+            Made in <span className="text-base">🇺🇦</span>
+          </span>
         </div>
         <div className="flex items-center gap-6 text-xs text-muted-foreground">
           <Link to="/about" className="hover:text-foreground transition-colors">About</Link>

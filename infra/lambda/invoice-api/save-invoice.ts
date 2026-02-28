@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { createResponse, getUserIdFromEvent, validateRequired } from "./utils";
 import { Invoice, DynamoDBItem } from "./types";
 
@@ -9,7 +9,7 @@ const TABLE_NAME = process.env.TABLE_NAME!;
 
 /**
  * POST /invoices
- * Save new invoice
+ * Save new invoice and track usage
  */
 export async function handler(event: any) {
     console.log("Event:", JSON.stringify(event, null, 2));
@@ -39,17 +39,43 @@ export async function handler(event: any) {
             GSI1SK: now,
         };
 
-        const command = new PutCommand({
+        // Save invoice
+        const saveCommand = new PutCommand({
             TableName: TABLE_NAME,
             Item: item,
         });
 
-        await docClient.send(command);
+        await docClient.send(saveCommand);
+
+        // Increment usage counter
+        const usageCommand = new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: {
+                userId,
+                itemId: "USAGE#STATS",
+            },
+            UpdateExpression:
+                "SET itemType = :itemType, invoiceCount = if_not_exists(invoiceCount, :zero) + :inc, lastInvoiceDate = :now, updatedAt = :now",
+            ExpressionAttributeValues: {
+                ":itemType": "USAGE",
+                ":zero": 0,
+                ":inc": 1,
+                ":now": now,
+            },
+            ReturnValues: "ALL_NEW",
+        });
+
+        const usageResult = await docClient.send(usageCommand);
+        const invoiceCount = usageResult.Attributes?.invoiceCount || 1;
 
         return createResponse(201, {
             message: "Invoice saved successfully",
             id: invoice.invoiceNumber,
             data: invoice,
+            usage: {
+                invoiceCount,
+                lastInvoiceDate: now,
+            },
         });
     } catch (error: any) {
         console.error("Error:", error);

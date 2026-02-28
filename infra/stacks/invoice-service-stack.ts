@@ -11,6 +11,7 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
+import { Monitoring, MonitoringThresholds } from "./constructs/monitoring/monitoring.js";
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -19,6 +20,8 @@ const __dirname = path.dirname(__filename);
 export interface InvoiceServiceStackProps extends cdk.StackProps {
     readonly certificateArn?: string;
     readonly domainName?: string;
+    readonly alertEmail?: string;
+    readonly monitoringThresholds?: MonitoringThresholds;
 }
 
 export class InvoiceServiceStack extends cdk.Stack {
@@ -27,6 +30,7 @@ export class InvoiceServiceStack extends cdk.Stack {
     public readonly invoiceDataTable: dynamodb.Table;
     public readonly auth: Passwordless;
     public readonly website: PublicWebsite;
+    public readonly api: apigateway.RestApi;
 
     constructor(scope: Construct, id: string, props: InvoiceServiceStackProps) {
         super(scope, id, props);
@@ -311,6 +315,9 @@ export class InvoiceServiceStack extends cdk.Stack {
             },
         });
 
+        // Store API reference for monitoring
+        this.api = api;
+
         // Create Cognito authorizer
         const authorizer = new apigateway.CognitoUserPoolsAuthorizer(
             this,
@@ -434,6 +441,17 @@ export class InvoiceServiceStack extends cdk.Stack {
                 target: route53.RecordTarget.fromAlias(
                     new targets.CloudFrontTarget(this.website.distribution)
                 ),
+            });
+        }
+
+        // Add monitoring if alertEmail is provided
+        if (props.alertEmail) {
+            new Monitoring(this, "Monitoring", {
+                api: api,
+                userPool: this.auth.userPool,
+                alertEmail: props.alertEmail,
+                environment: environment,
+                thresholds: props.monitoringThresholds,
             });
         }
 

@@ -8,6 +8,18 @@ const app = new cdk.App();
 
 const account = "350610702366";
 const domainName = "makeinvoices.app";
+// const alertEmail = "your-email@example.com"; // TODO: Update with your email for monitoring alerts
+
+// Optional: Customize monitoring thresholds
+// Uncomment and adjust values as needed
+// const monitoringThresholds = {
+//     api4xxErrors: 20,              // Default: 10
+//     api5xxErrors: 10,              // Default: 5
+//     apiLatency: 5000,              // Default: 3000 (ms)
+//     apiLatencyEvaluationPeriods: 3, // Default: 2
+//     cognitoAuthFailures: 15,       // Default: 10
+//     cognitoThrottles: 10,          // Default: 5
+// };
 
 // Create certificate stack in us-east-1 (required for CloudFront)
 const certStack = new CertificatesStack(app, "CertificatesStack", {
@@ -21,7 +33,7 @@ const certStack = new CertificatesStack(app, "CertificatesStack", {
     description: "ACM Certificate for CloudFront distribution",
 });
 
-// Create main stack in eu-west-1
+// Create main stack in eu-west-1 (includes monitoring construct)
 const mainStack = new InvoiceServiceStack(app, "InvoiceServiceStack", {
     env: {
         account: account,
@@ -30,6 +42,8 @@ const mainStack = new InvoiceServiceStack(app, "InvoiceServiceStack", {
     crossRegionReferences: true,
     certificateArn: certStack.certificateArn,
     domainName: domainName,
+    // alertEmail: alertEmail, // Monitoring alerts will be sent to this email
+    // monitoringThresholds: monitoringThresholds, // Uncomment to use custom thresholds
     description: "Simple Invoice Service Infrastructure",
 });
 

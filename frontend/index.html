@@ -4,6 +4,55 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+        <!-- Theme Script - MUST be first to prevent flash -->
+        <script>
+            (function () {
+                const storageKey = "sis-ui-theme";
+                const theme = localStorage.getItem(storageKey) || "system";
+                const root = document.documentElement;
+
+                // Disable transitions during initial load
+                root.classList.add("no-transitions");
+
+                if (theme === "dark") {
+                    root.classList.add("dark");
+                } else if (theme === "light") {
+                    root.classList.remove("dark");
+                } else {
+                    // System theme
+                    const isDark = window.matchMedia(
+                        "(prefers-color-scheme: dark)",
+                    ).matches;
+                    if (isDark) {
+                        root.classList.add("dark");
+                    } else {
+                        root.classList.remove("dark");
+                    }
+                }
+
+                // Re-enable transitions after a brief delay
+                setTimeout(function () {
+                    root.classList.remove("no-transitions");
+                }, 0);
+            })();
+        </script>
+
+        <!-- Inline critical CSS to prevent flash -->
+        <style>
+            html {
+                background-color: hsl(210 20% 98%) !important;
+            }
+            html.dark {
+                background-color: hsl(210 50% 7%) !important;
+            }
+            body {
+                background-color: hsl(210 20% 98%) !important;
+            }
+            html.dark body {
+                background-color: hsl(210 50% 7%) !important;
+            }
+        </style>
+
         <!-- Primary Meta Tags -->
         <title>
             OneThing Invoice - Free Online Invoice Generator | Create
@@ -73,7 +122,7 @@
         <script>
             (function () {
                 const storageKey = "sis-ui-theme";
-                const theme = localStorage.getItem(storageKey) || "system";
+                const theme = localStorage.getItem(storageKey) || "light";
                 const root = document.documentElement;
 
                 // Disable transitions during initial load
@@ -134,13 +183,8 @@
         <!-- Set body background immediately based on theme -->
         <script>
             (function () {
-                const theme = localStorage.getItem("sis-ui-theme") || "system";
+                const theme = localStorage.getItem("sis-ui-theme") || "light";
                 let isDark = theme === "dark";
-                if (theme === "system") {
-                    isDark = window.matchMedia(
-                        "(prefers-color-scheme: dark)",
-                    ).matches;
-                }
                 document.body.style.backgroundColor = isDark
                     ? "hsl(210 50% 7%)"
                     : "hsl(210 20% 98%)";

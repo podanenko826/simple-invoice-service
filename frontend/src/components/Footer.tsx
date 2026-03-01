@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 
 const Footer = () => {
+    const version = "0.9.0";
+
     return (
         <footer className="border-t border-border bg-background">
             <div className="container flex flex-col sm:flex-row items-center justify-between gap-4 py-5 px-6">
@@ -14,6 +16,8 @@ const Footer = () => {
                     <span className="flex items-center gap-1.5">
                         Made in <span className="text-base">🇺🇦</span>
                     </span>
+                    <span className="text-border hidden sm:inline">|</span>
+                    <span className="hidden sm:inline">v{version}</span>
                 </div>
                 <div className="flex items-center gap-6 text-xs text-muted-foreground">
                     <Link

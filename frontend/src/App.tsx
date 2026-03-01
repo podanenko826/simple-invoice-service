@@ -15,7 +15,7 @@ import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
     return (
-        <ThemeProvider defaultTheme="system" storageKey="sis-ui-theme">
+        <ThemeProvider defaultTheme="light" storageKey="sis-ui-theme">
             <AuthProvider>
                 <BrowserRouter>
                     <ScrollToTop />

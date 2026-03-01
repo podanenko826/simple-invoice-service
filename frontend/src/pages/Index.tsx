@@ -193,7 +193,7 @@ const Index = () => {
                         protect your information and respect your privacy.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 mb-4">
                                 <Shield className="h-6 w-6 text-green-600" />
                             </div>
@@ -206,7 +206,7 @@ const Index = () => {
                                 by financial institutions.
                             </p>
                         </div>
-                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-500/10 mb-4">
                                 <EyeOff className="h-6 w-6 text-purple-600" />
                             </div>
@@ -219,7 +219,7 @@ const Index = () => {
                                 third parties.
                             </p>
                         </div>
-                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 mb-4">
                                 <Database className="h-6 w-6 text-blue-600" />
                             </div>

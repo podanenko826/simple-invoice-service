@@ -25,17 +25,20 @@ export async function handler(event: any) {
                 ":userId": userId,
                 ":prefix": "INVOICE#",
             },
-            ScanIndexForward: false, // Sort by newest first
         });
-
         const result = await docClient.send(command);
-
-        const invoices = (result.Items || []).map((item) => ({
-            id: item.itemId.replace("INVOICE#", ""),
-            ...item.data,
-            createdAt: item.createdAt,
-            pdfUrl: item.pdfUrl,
-        }));
+        const invoices = (result.Items || [])
+            .sort((a, b) => {
+                const aCreated = a.createdAt ?? "";
+                const bCreated = b.createdAt ?? "";
+                return bCreated.localeCompare(aCreated);
+            })
+            .map((item) => ({
+                id: item.itemId.replace("INVOICE#", ""),
+                ...item.data,
+                createdAt: item.createdAt,
+                pdfUrl: item.pdfUrl,
+            }));
 
         return createResponse(200, invoices);
     } catch (error: any) {

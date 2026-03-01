@@ -1,7 +1,15 @@
 import { Link } from "react-router-dom";
-import { ShieldCheck, ListFilter, Eye, Download, Users, ChevronDown, Shield, EyeOff, Database } from "lucide-react";
+import {
+    ShieldCheck,
+    ListFilter,
+    Eye,
+    Download,
+    ChevronDown,
+    Shield,
+    EyeOff,
+    Database,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { getRuntimeConfig } from "@/config/runtime-config";
 import { useAuth } from "@/lib/auth/AuthContext";
 
 const faqData = [
@@ -24,7 +32,6 @@ const faqData = [
 ];
 
 const Index = () => {
-    const [totalInvoices, setTotalInvoices] = useState<number | null>(null);
     const [showScrollIndicator, setShowScrollIndicator] = useState(true);
     const { isAuthenticated } = useAuth();
 
@@ -33,42 +40,24 @@ const Index = () => {
         const faqSchema = {
             "@context": "https://schema.org",
             "@type": "FAQPage",
-            "mainEntity": faqData.map(faq => ({
+            mainEntity: faqData.map((faq) => ({
                 "@type": "Question",
-                "name": faq.q,
-                "acceptedAnswer": {
+                name: faq.q,
+                acceptedAnswer: {
                     "@type": "Answer",
-                    "text": faq.a
-                }
-            }))
+                    text: faq.a,
+                },
+            })),
         };
 
-        const script = document.createElement('script');
-        script.type = 'application/ld+json';
+        const script = document.createElement("script");
+        script.type = "application/ld+json";
         script.text = JSON.stringify(faqSchema);
         document.head.appendChild(script);
 
         return () => {
             document.head.removeChild(script);
         };
-    }, []);
-
-    useEffect(() => {
-        // Fetch global usage stats for social proof
-        const fetchGlobalStats = async () => {
-            try {
-                const config = getRuntimeConfig();
-                const response = await fetch(`${config.apiUrl}/stats/global`);
-                if (response.ok) {
-                    const data = await response.json();
-                    setTotalInvoices(data.totalInvoices);
-                }
-            } catch {
-                // Silently fail - social proof is optional
-                console.debug("Could not load global stats");
-            }
-        };
-        fetchGlobalStats();
     }, []);
 
     useEffect(() => {
@@ -81,8 +70,8 @@ const Index = () => {
             }
         };
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     return (
@@ -133,23 +122,18 @@ const Index = () => {
                     </span>
                 </div>
 
-                {/* Social Proof */}
-                {totalInvoices && totalInvoices > 100 && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Users className="h-4 w-4" />
-                        <span>
-                            Join {totalInvoices.toLocaleString()}+ invoices created by our community
-                        </span>
-                    </div>
-                )}
-
                 {/* Scroll Indicator */}
                 {showScrollIndicator && (
                     <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 transition-opacity duration-500 opacity-70 hover:opacity-100">
-                        <span className="text-sm font-medium text-muted-foreground tracking-wide">Scroll to learn more</span>
+                        <span className="text-sm font-medium text-muted-foreground tracking-wide">
+                            Scroll to learn more
+                        </span>
                         <div className="relative flex flex-col items-center">
                             <ChevronDown className="h-6 w-6 text-primary animate-bounce" />
-                            <ChevronDown className="h-6 w-6 text-primary/40 absolute top-2 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <ChevronDown
+                                className="h-6 w-6 text-primary/40 absolute top-2 animate-bounce"
+                                style={{ animationDelay: "150ms" }}
+                            />
                         </div>
                     </div>
                 )}
@@ -162,39 +146,39 @@ const Index = () => {
                         Three steps. That's it.
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-12 text-center">
-                    {[
-                        {
-                            icon: ListFilter,
-                            title: "Enter Details",
-                            desc: "Fill in your items. We handle all formatting and math.",
-                        },
-                        {
-                            icon: Eye,
-                            title: "Preview",
-                            desc: "See your professional PDF live as you type.",
-                        },
-                        {
-                            icon: Download,
-                            title: "Download",
-                            desc: "Get your PDF instantly. No email gates, no waits.",
-                        },
-                    ].map((step, i) => (
-                        <div
-                            key={i}
-                            className="flex flex-col items-center gap-3"
-                        >
-                            <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-muted mb-1">
-                                <step.icon className="h-6 w-6 text-muted-foreground" />
+                        {[
+                            {
+                                icon: ListFilter,
+                                title: "Enter Details",
+                                desc: "Fill in your items. We handle all formatting and math.",
+                            },
+                            {
+                                icon: Eye,
+                                title: "Preview",
+                                desc: "See your professional PDF live as you type.",
+                            },
+                            {
+                                icon: Download,
+                                title: "Download",
+                                desc: "Get your PDF instantly. No email gates, no waits.",
+                            },
+                        ].map((step, i) => (
+                            <div
+                                key={i}
+                                className="flex flex-col items-center gap-3"
+                            >
+                                <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-muted mb-1">
+                                    <step.icon className="h-6 w-6 text-muted-foreground" />
+                                </div>
+                                <h3 className="text-sm font-bold text-foreground">
+                                    {i + 1}. {step.title}
+                                </h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">
+                                    {step.desc}
+                                </p>
                             </div>
-                            <h3 className="text-sm font-bold text-foreground">
-                                {i + 1}. {step.title}
-                            </h3>
-                            <p className="text-sm text-muted-foreground leading-relaxed max-w-[200px]">
-                                {step.desc}
-                            </p>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
                 </div>
             </section>
 
@@ -205,34 +189,47 @@ const Index = () => {
                         Your Security & Privacy Guaranteed
                     </h2>
                     <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
-                        We take your data seriously. Here's exactly how we protect your information and respect your privacy.
+                        We take your data seriously. Here's exactly how we
+                        protect your information and respect your privacy.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-green-500/10 mb-4">
                                 <Shield className="h-6 w-6 text-green-600" />
                             </div>
-                            <h3 className="font-semibold text-foreground mb-3">Bank-Level Encryption</h3>
+                            <h3 className="font-semibold text-foreground mb-3">
+                                Bank-Level Encryption
+                            </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                All data is encrypted in transit (TLS 1.3) and at rest (AES-256). Same security standards used by financial institutions.
+                                All data is encrypted in transit (TLS 1.3) and
+                                at rest (AES-256). Same security standards used
+                                by financial institutions.
                             </p>
                         </div>
                         <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-purple-500/10 mb-4">
                                 <EyeOff className="h-6 w-6 text-purple-600" />
                             </div>
-                            <h3 className="font-semibold text-foreground mb-3">Zero Tracking</h3>
+                            <h3 className="font-semibold text-foreground mb-3">
+                                Zero Tracking
+                            </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                No analytics, no cookies, no tracking pixels. We don't monitor your behavior or sell your data to third parties.
+                                No analytics, no cookies, no tracking pixels. We
+                                don't monitor your behavior or sell your data to
+                                third parties.
                             </p>
                         </div>
                         <div className="flex flex-col p-6 bg-background rounded-xl border border-border shadow-sm hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-blue-500/10 mb-4">
                                 <Database className="h-6 w-6 text-blue-600" />
                             </div>
-                            <h3 className="font-semibold text-foreground mb-3">Your Data, Your Control</h3>
+                            <h3 className="font-semibold text-foreground mb-3">
+                                Your Data, Your Control
+                            </h3>
                             <p className="text-sm text-muted-foreground leading-relaxed">
-                                You own your data. Export or delete your invoices anytime. No lock-in, no hidden retention policies.
+                                You own your data. Export or delete your
+                                invoices anytime. No lock-in, no hidden
+                                retention policies.
                             </p>
                         </div>
                     </div>
@@ -247,7 +244,10 @@ const Index = () => {
                     </h2>
                     <div className="space-y-6">
                         {faqData.map((faq, i) => (
-                            <div key={i} className="border-b border-border pb-6 last:border-0">
+                            <div
+                                key={i}
+                                className="border-b border-border pb-6 last:border-0"
+                            >
                                 <h3 className="font-semibold text-foreground mb-2">
                                     {faq.q}
                                 </h3>
@@ -262,7 +262,8 @@ const Index = () => {
                             to="/about"
                             className="text-sm text-primary hover:underline"
                         >
-                            Have more questions? Learn more about OneThing Invoice →
+                            Have more questions? Learn more about OneThing
+                            Invoice →
                         </Link>
                     </div>
                 </div>

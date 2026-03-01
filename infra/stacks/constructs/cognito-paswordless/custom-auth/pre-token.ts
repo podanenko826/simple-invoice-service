@@ -1,5 +1,6 @@
 import { PreTokenGenerationTriggerHandler } from "aws-lambda";
 import { logger, UserFacingError } from "./common.js";
+import { logEventSafely } from "./safe-logger.js";
 
 const CLIENT_METADATA_PERSISTED_KEYS =
     process.env.CLIENT_METADATA_PERSISTED_KEYS?.split(",").map((key) =>
@@ -7,7 +8,7 @@ const CLIENT_METADATA_PERSISTED_KEYS =
     ) ?? [];
 
 export const handler: PreTokenGenerationTriggerHandler = async (event) => {
-    logger.debug(JSON.stringify(event, null, 2));
+    logEventSafely(event, logger);
     logger.info("PreToken Generation for trigger:", event.triggerSource);
     if (event.triggerSource === "TokenGeneration_Authentication") {
         const clientMetadataToPersist =
@@ -34,7 +35,6 @@ export const handler: PreTokenGenerationTriggerHandler = async (event) => {
             });
         }
     }
-    logger.debug(JSON.stringify(event, null, 2));
     return event;
 };
 

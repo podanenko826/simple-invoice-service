@@ -28,7 +28,15 @@ export function getUserIdFromEvent(event: any): string {
 }
 
 export function validateRequired(data: any, fields: string[]): void {
-    const missing = fields.filter((field) => !data[field]);
+    const missing = fields.filter((field) => {
+        const value = data[field];
+        return (
+            value === undefined ||
+            value === null ||
+            value === "" ||
+            (typeof value === "string" && value.trim() === "")
+        );
+    });
     if (missing.length > 0) {
         throw new Error(`Missing required fields: ${missing.join(", ")}`);
     }

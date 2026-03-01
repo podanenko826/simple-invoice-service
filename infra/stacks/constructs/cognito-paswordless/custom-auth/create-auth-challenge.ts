@@ -4,9 +4,10 @@ import {
 } from "aws-lambda";
 import * as magicLink from "./magic-link.js";
 import { logger, UserFacingError } from "./common.js";
+import { logEventSafely } from "./safe-logger.js";
 
 export const handler: CreateAuthChallengeTriggerHandler = async (event) => {
-    logger.debug(JSON.stringify(event, null, 2));
+    logEventSafely(event, logger);
     try {
         if (!event.request.session || !event.request.session.length) {
             // This is the first time Create Auth Challenge is called
@@ -26,7 +27,6 @@ export const handler: CreateAuthChallengeTriggerHandler = async (event) => {
                 throw new Error(`Unrecognized signInMethod: ${signInMethod}`);
             }
         }
-        logger.debug(JSON.stringify(event, null, 2));
         return event;
     } catch (err: unknown) {
         logger.error(err);

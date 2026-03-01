@@ -23,7 +23,7 @@ export async function exportInvoicePdf(
     link.href = url;
     link.download = `${invoice.invoiceNumber}.pdf`;
     link.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 0);
 }
 
 export async function previewInvoicePdf(

@@ -11,7 +11,10 @@ import * as path from "path";
 import { fileURLToPath } from "url";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
-import { Monitoring, MonitoringThresholds } from "./constructs/monitoring/monitoring.js";
+import {
+    Monitoring,
+    MonitoringThresholds,
+} from "./constructs/monitoring/monitoring.js";
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -229,19 +232,12 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
-        const getUsageFunction = new NodejsFunction(
-            this,
-            "GetUsageFunction",
-            {
-                ...lambdaProps,
-                entry: path.join(
-                    __dirname,
-                    "../lambda/invoice-api/get-usage.ts"
-                ),
-                handler: "handler",
-                description: "Get user usage statistics",
-            }
-        );
+        const getUsageFunction = new NodejsFunction(this, "GetUsageFunction", {
+            ...lambdaProps,
+            entry: path.join(__dirname, "../lambda/invoice-api/get-usage.ts"),
+            handler: "handler",
+            description: "Get user usage statistics",
+        });
 
         const saveFeedbackFunction = new NodejsFunction(
             this,
@@ -257,26 +253,11 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
-        const getGlobalStatsFunction = new NodejsFunction(
-            this,
-            "GetGlobalStatsFunction",
-            {
-                ...lambdaProps,
-                entry: path.join(
-                    __dirname,
-                    "../lambda/invoice-api/get-global-stats.ts"
-                ),
-                handler: "handler",
-                description: "Get global usage statistics (public)",
-            }
-        );
-
         // Grant DynamoDB permissions
         this.invoiceDataTable.grantReadData(getTemplateFunction);
         this.invoiceDataTable.grantReadData(listInvoicesFunction);
         this.invoiceDataTable.grantReadData(getInvoiceFunction);
         this.invoiceDataTable.grantReadData(getUsageFunction);
-        this.invoiceDataTable.grantReadData(getGlobalStatsFunction);
         this.invoiceDataTable.grantWriteData(saveTemplateFunction);
         this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
         this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
@@ -403,17 +384,6 @@ export class InvoiceServiceStack extends cdk.Stack {
             "POST",
             new apigateway.LambdaIntegration(saveFeedbackFunction),
             authMethodOptions
-        );
-
-        // Stats endpoint (public - no auth required)
-        const stats = api.root.addResource("stats");
-        const globalStats = stats.addResource("global");
-
-        // GET /stats/global (public)
-        globalStats.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(getGlobalStatsFunction)
-            // No auth required for public stats
         );
 
         // Create public website with CloudFront distribution

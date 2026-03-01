@@ -25,6 +25,30 @@ async function fetchWithAuth(
         throw new ApiError("Not authenticated", 401);
     }
 
+    // Check if token is expired or about to expire (within 5 minutes)
+    const now = new Date();
+    const expireAt = tokens.expireAt ? new Date(tokens.expireAt) : null;
+    const isExpired = expireAt && expireAt.valueOf() - now.valueOf() < 5 * 60 * 1000;
+
+    // If token is expired and we have a refresh token, try to refresh
+    if (isExpired && tokens.refreshToken) {
+        try {
+            const { refreshTokens } = await import("./auth/refresh");
+            const refreshedTokens = await refreshTokens({
+                tokens: {
+                    refreshToken: tokens.refreshToken,
+                    expireAt: tokens.expireAt,
+                    username: tokens.username,
+                },
+            });
+            // Use the refreshed token for this request
+            tokens.idToken = refreshedTokens.idToken;
+        } catch (error) {
+            console.error("Failed to refresh token:", error);
+            throw new ApiError("Session expired. Please log in again.", 401);
+        }
+    }
+
     const config = getRuntimeConfig();
     const response = await fetch(`${config.apiUrl}${endpoint}`, {
         ...options,

@@ -254,6 +254,7 @@ interface InvoiceTemplate {
     iban?: string;
     routingNumber?: string;
     swiftCode?: string;
+    registrationNumber?: string;
     notes?: string;
     currency: string;
     taxRate?: number;
@@ -544,6 +545,16 @@ const InvoicePdfDocument = ({
                                     </Text>
                                     <Text style={styles.paymentInfoValue}>
                                         {template.routingNumber}
+                                    </Text>
+                                </View>
+                            )}
+                            {template.registrationNumber && (
+                                <View style={styles.paymentInfoItem}>
+                                    <Text style={styles.paymentInfoLabel}>
+                                        Registration Number
+                                    </Text>
+                                    <Text style={styles.paymentInfoValue}>
+                                        {template.registrationNumber}
                                     </Text>
                                 </View>
                             )}

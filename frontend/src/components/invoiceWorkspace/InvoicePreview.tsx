@@ -544,6 +544,29 @@ const InvoicePreview = ({
                                     </p>
                                 </div>
                             )}
+                            {template.registrationNumber && (
+                                <div>
+                                    <p
+                                        style={{
+                                            fontSize: "0.95em",
+                                            color: C.secondary,
+                                            fontWeight: 400,
+                                        }}
+                                    >
+                                        Registration Number
+                                    </p>
+                                    <p
+                                        className="font-mono tracking-wide"
+                                        style={{
+                                            fontSize: "1.1em",
+                                            color: C.primary,
+                                            fontWeight: 500,
+                                        }}
+                                    >
+                                        {template.registrationNumber}
+                                    </p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

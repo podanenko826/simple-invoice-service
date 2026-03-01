@@ -15,6 +15,7 @@ export interface InvoiceTemplate {
     iban: string;
     routingNumber: string;
     swiftCode: string;
+    registrationNumber: string;
 
     notes: string;
     currency: string;
@@ -36,6 +37,7 @@ export const defaultTemplate: InvoiceTemplate = {
     iban: "",
     routingNumber: "",
     swiftCode: "",
+    registrationNumber: "",
 
     notes: "",
     currency: DEFAULT_CURRENCY,

@@ -435,6 +435,22 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                         />
                                     </div>
                                 </div>
+                                <div className="space-y-2.5">
+                                    <Label htmlFor="registrationNumber">
+                                        Registration Number
+                                    </Label>
+                                    <Input
+                                        id="registrationNumber"
+                                        placeholder="Company registration or tax ID number"
+                                        value={form.registrationNumber}
+                                        onChange={(e) =>
+                                            update(
+                                                "registrationNumber",
+                                                e.target.value,
+                                            )
+                                        }
+                                    />
+                                </div>
                             </CardContent>
                             <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">
                                 <Button

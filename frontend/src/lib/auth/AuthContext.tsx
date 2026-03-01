@@ -8,7 +8,7 @@ import {
 } from "react";
 import { retrieveTokens } from "./storage.js";
 import { signOut as authSignOut } from "./common.js";
-import { refreshTokens } from "./refresh.js";
+import { refreshTokens, scheduleRefresh } from "./refresh.js";
 import type { TokensFromSignIn } from "./model.js";
 
 interface AuthContextType {
@@ -38,6 +38,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setIsLoading(false);
             });
     }, []);
+
+    // Schedule automatic token refresh
+    useEffect(() => {
+        if (!tokens) return;
+
+        const abort = new AbortController();
+        
+        scheduleRefresh({
+            abort: abort.signal,
+            tokensCb: (refreshedTokens) => {
+                setTokens((prev) =>
+                    prev
+                        ? { ...prev, ...refreshedTokens }
+                        : (refreshedTokens as TokensFromSignIn),
+                );
+            },
+            isRefreshingCb: (isRefreshing) => {
+                console.log("Token refresh status:", isRefreshing);
+            },
+        });
+
+        return () => {
+            abort.abort();
+        };
+    }, [tokens?.expireAt]);
 
     // Refresh tokens
     const refreshAuth = useCallback(async () => {

@@ -3,9 +3,10 @@ import {
     DefineAuthChallengeTriggerEvent,
 } from "aws-lambda";
 import { logger } from "./common.js";
+import { logEventSafely } from "./safe-logger.js";
 
 export const handler: DefineAuthChallengeTriggerHandler = async (event) => {
-    logger.debug(JSON.stringify(event, null, 2));
+    logEventSafely(event, logger);
 
     if (!event.request.session.length) {
         // The auth flow just started, send a custom challenge
@@ -51,15 +52,13 @@ function deny(event: DefineAuthChallengeTriggerEvent, reason: string) {
     logger.info("Failing authentication because:", reason);
     event.response.issueTokens = false;
     event.response.failAuthentication = true;
-    logger.debug(JSON.stringify(event, null, 2));
     return event;
 }
 
 function allow(event: DefineAuthChallengeTriggerEvent) {
-    logger.info("Authentication successfull");
+    logger.info("Authentication successful");
     event.response.issueTokens = true;
     event.response.failAuthentication = false;
-    logger.debug(JSON.stringify(event, null, 2));
     return event;
 }
 
@@ -68,7 +67,6 @@ function customChallenge(event: DefineAuthChallengeTriggerEvent) {
     event.response.failAuthentication = false;
     event.response.challengeName = "CUSTOM_CHALLENGE";
     logger.info("Next step: CUSTOM_CHALLENGE");
-    logger.debug(JSON.stringify(event, null, 2));
     return event;
 }
 

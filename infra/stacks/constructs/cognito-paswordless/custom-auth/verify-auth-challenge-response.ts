@@ -1,11 +1,12 @@
 import { VerifyAuthChallengeResponseTriggerHandler } from "aws-lambda";
 import * as magicLink from "./magic-link.js";
 import { logger, UserFacingError } from "./common.js";
+import { logEventSafely } from "./safe-logger.js";
 
 export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
     event
 ) => {
-    logger.debug(JSON.stringify(event, null, 2));
+    logEventSafely(event, logger);
     try {
         event.response.answerCorrect = false;
 
@@ -14,7 +15,6 @@ export const handler: VerifyAuthChallengeResponseTriggerHandler = async (
             await magicLink.addChallengeVerificationResultToEvent(event);
         }
         // Return event
-        logger.debug(JSON.stringify(event, null, 2));
         logger.info(
             "Verification result, answerCorrect:",
             event.response.answerCorrect

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { MessageSquare, TrendingUp, LogOut, Menu, X } from "lucide-react";
 import SISLogo from "./SISLogo";
 import FeedbackDialog from "./FeedbackDialog";
+import { ThemeToggle } from "./ThemeToggle";
 import { useLocation, useNavigate } from "react-router-dom";
 import { usageApi, type UsageStats } from "@/lib/api-client";
 import { Badge } from "./ui/badge";
@@ -28,7 +29,9 @@ const Header = () => {
                 usageApi
                     .get()
                     .then(setUsage)
-                    .catch((err) => console.error("Failed to load usage:", err));
+                    .catch((err) =>
+                        console.error("Failed to load usage:", err),
+                    );
             };
 
             // Load initially
@@ -36,10 +39,16 @@ const Header = () => {
 
             // Reload when invoice is generated
             const handleInvoiceGenerated = () => loadUsage();
-            window.addEventListener('invoice-generated', handleInvoiceGenerated);
+            window.addEventListener(
+                "invoice-generated",
+                handleInvoiceGenerated,
+            );
 
             return () => {
-                window.removeEventListener('invoice-generated', handleInvoiceGenerated);
+                window.removeEventListener(
+                    "invoice-generated",
+                    handleInvoiceGenerated,
+                );
             };
         }
     }, [location.pathname]);
@@ -51,10 +60,10 @@ const Header = () => {
 
     return (
         <>
-            <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-card/80 backdrop-blur-md">
+            <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-card backdrop-blur-sm">
                 <div className="container flex h-16 items-center justify-between">
                     <SISLogo showSubtitle />
-                    
+
                     {/* Desktop Navigation */}
                     <nav className="hidden md:flex items-center gap-6">
                         {location.pathname === "/workspace" && (
@@ -62,8 +71,15 @@ const Header = () => {
                                 {usage && usage.invoiceCount > 0 && (
                                     <div className="flex items-center gap-2">
                                         <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                        <Badge variant="secondary" className="font-mono">
-                                            {usage.invoiceCount} invoice{usage.invoiceCount !== 1 ? 's' : ''} generated
+                                        <Badge
+                                            variant="secondary"
+                                            className="font-mono"
+                                        >
+                                            {usage.invoiceCount} invoice
+                                            {usage.invoiceCount !== 1
+                                                ? "s"
+                                                : ""}{" "}
+                                            generated
                                         </Badge>
                                     </div>
                                 )}
@@ -76,12 +92,13 @@ const Header = () => {
                                 </button>
                             </>
                         )}
+                        <ThemeToggle />
                         {isAuthenticated && (
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={handleSignOut}
-                                className="gap-1.5"
+                                className="gap-1.5 text-muted-foreground"
                             >
                                 <LogOut className="h-4 w-4" />
                                 Sign out
@@ -112,8 +129,15 @@ const Header = () => {
                                     {usage && usage.invoiceCount > 0 && (
                                         <div className="flex items-center gap-2 px-3 py-2">
                                             <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                                            <Badge variant="secondary" className="font-mono">
-                                                {usage.invoiceCount} invoice{usage.invoiceCount !== 1 ? 's' : ''} generated
+                                            <Badge
+                                                variant="secondary"
+                                                className="font-mono"
+                                            >
+                                                {usage.invoiceCount} invoice
+                                                {usage.invoiceCount !== 1
+                                                    ? "s"
+                                                    : ""}{" "}
+                                                generated
                                             </Badge>
                                         </div>
                                     )}

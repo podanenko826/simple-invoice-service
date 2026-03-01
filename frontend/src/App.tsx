@@ -1,6 +1,7 @@
 import "./App.css";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./lib/auth/AuthContext";
+import { ThemeProvider } from "./hooks/use-theme";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Login from "./pages/Login";
 import Index from "./pages/Index";
@@ -14,28 +15,30 @@ import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
     return (
-        <AuthProvider>
-            <BrowserRouter>
-                <ScrollToTop />
-                <Header />
-                <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/about" element={<About />} />
-                    <Route path="/privacy" element={<Privacy />} />
-                    <Route path="/terms" element={<Terms />} />
-                    <Route
-                        path="/workspace"
-                        element={
-                            <ProtectedRoute>
-                                <InvoiceWorkspace />
-                            </ProtectedRoute>
-                        }
-                    />
-                </Routes>
-                <Footer />
-            </BrowserRouter>
-        </AuthProvider>
+        <ThemeProvider defaultTheme="system" storageKey="sis-ui-theme">
+            <AuthProvider>
+                <BrowserRouter>
+                    <ScrollToTop />
+                    <Header />
+                    <Routes>
+                        <Route path="/" element={<Index />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/about" element={<About />} />
+                        <Route path="/privacy" element={<Privacy />} />
+                        <Route path="/terms" element={<Terms />} />
+                        <Route
+                            path="/workspace"
+                            element={
+                                <ProtectedRoute>
+                                    <InvoiceWorkspace />
+                                </ProtectedRoute>
+                            }
+                        />
+                    </Routes>
+                    <Footer />
+                </BrowserRouter>
+            </AuthProvider>
+        </ThemeProvider>
     );
 }
 

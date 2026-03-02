@@ -6,6 +6,7 @@ interface LineItem {
     description: string;
     detail?: string;
     quantity: number;
+    unit: string;
     unitPrice: number;
 }
 
@@ -311,7 +312,7 @@ const InvoicePreview = ({
                                                 className="text-center py-[0.5em]"
                                                 style={{ fontWeight: 400 }}
                                             >
-                                                {item.quantity}
+                                                {item.quantity} {item.unit}
                                             </td>
                                             <td
                                                 className="text-right py-[0.5em]"

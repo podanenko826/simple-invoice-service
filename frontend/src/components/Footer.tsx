@@ -10,14 +10,15 @@ const Footer = () => {
                     <span className="font-bold text-foreground tracking-[0.15em] text-sm">
                         OneThing
                     </span>
-                    <span className="text-border">|</span>
-                    <span>© 2025 Simple Invoice Service</span>
-                    <span className="text-border hidden sm:inline">|</span>
-                    <span className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground/70">Invoice Tool</span>
+                    <span className="text-border/70">|</span>
+                    <span className="text-muted-foreground/70">© 2026 OneThing</span>
+                    <span className="text-border/70 hidden sm:inline">|</span>
+                    <span className="flex items-center gap-1.5 text-muted-foreground/70">
                         Made in <span className="text-base">🇺🇦</span>
                     </span>
-                    <span className="text-border hidden sm:inline">|</span>
-                    <span className="hidden sm:inline">v{version}</span>
+                    <span className="text-border/70 hidden sm:inline">|</span>
+                    <span className="hidden sm:inline text-muted-foreground/70">v{version}</span>
                 </div>
                 <div className="flex items-center gap-6 text-xs text-muted-foreground">
                     <Link

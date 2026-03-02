@@ -6,6 +6,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
     FileText,
     Plus,
     Trash2,
@@ -32,6 +39,7 @@ interface LineItem {
     description: string;
     detail: string;
     quantity: number;
+    unit: string;
     unitPrice: number;
 }
 
@@ -76,6 +84,7 @@ const GenerateTab = ({
             description: "",
             detail: "",
             quantity: 1,
+            unit: "hours",
             unitPrice: 0,
         },
     ]);
@@ -91,6 +100,7 @@ const GenerateTab = ({
                 description: "",
                 detail: "",
                 quantity: 1,
+                unit: "hours",
                 unitPrice: 0,
             },
         ]);
@@ -150,6 +160,7 @@ const GenerateTab = ({
                 description: "",
                 detail: "",
                 quantity: 1,
+                unit: "hours",
                 unitPrice: 0,
             },
         ]);
@@ -296,10 +307,11 @@ const GenerateTab = ({
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-3">
-                                <div className="hidden sm:grid sm:grid-cols-[1fr_80px_100px_80px_40px] gap-3 text-xs font-medium text-muted-foreground px-1">
+                                <div className="hidden sm:grid sm:grid-cols-[1fr_80px_100px_120px_80px_40px] gap-3 text-xs font-medium text-muted-foreground px-1">
                                     <span>Description</span>
                                     <span>Qty</span>
-                                    <span>Unit Price</span>
+                                    <span>Unit</span>
+                                    <span>Rate</span>
                                     <span>Total</span>
                                     <span />
                                 </div>
@@ -307,7 +319,7 @@ const GenerateTab = ({
                                 {lineItems.map((item) => (
                                     <div
                                         key={item.id}
-                                        className="grid gap-3 sm:grid-cols-[1fr_80px_100px_80px_40px] items-start"
+                                        className="grid gap-3 sm:grid-cols-[1fr_80px_100px_120px_80px_40px] items-start"
                                     >
                                         <div className="space-y-1.5">
                                             <Input
@@ -347,6 +359,27 @@ const GenerateTab = ({
                                                 )
                                             }
                                         />
+                                        <Select
+                                            value={item.unit}
+                                            onValueChange={(value) =>
+                                                updateLineItem(
+                                                    item.id,
+                                                    "unit",
+                                                    value,
+                                                )
+                                            }
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="hours">Hours</SelectItem>
+                                                <SelectItem value="days">Days</SelectItem>
+                                                <SelectItem value="months">Months</SelectItem>
+                                                <SelectItem value="items">Items</SelectItem>
+                                                <SelectItem value="fixed">Fixed</SelectItem>
+                                            </SelectContent>
+                                        </Select>
                                         <Input
                                             type="number"
                                             min={0}

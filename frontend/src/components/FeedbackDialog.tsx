@@ -53,7 +53,7 @@ const FeedbackDialog = ({ open, onOpenChange }: FeedbackDialogProps) => {
             Help us improve
           </DialogTitle>
           <DialogDescription>
-            Hope you find Simple Invoice Service useful. We'd love your feedback—what should we improve?
+            Hope you find OneThing useful. We'd love your feedback—what should we improve?
           </DialogDescription>
         </DialogHeader>
         <Textarea

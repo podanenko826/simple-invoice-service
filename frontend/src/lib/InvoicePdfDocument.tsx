@@ -236,6 +236,7 @@ interface LineItem {
     description: string;
     detail?: string;
     quantity: number;
+    unit: string;
     unitPrice: number;
 }
 
@@ -425,7 +426,7 @@ const InvoicePdfDocument = ({
                                     </View>
                                     <View style={styles.qtyCell}>
                                         <Text style={styles.tableCell}>
-                                            {item.quantity}
+                                            {item.quantity} {item.unit}
                                         </Text>
                                     </View>
                                     <View style={styles.rateCell}>

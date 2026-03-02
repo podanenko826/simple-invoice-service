@@ -33,6 +33,7 @@ export interface LineItem {
     description: string;
     details: string;
     quantity: number;
+    unit: string;
     rate: number;
     amount: number;
 }

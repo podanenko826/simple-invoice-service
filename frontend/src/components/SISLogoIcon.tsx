@@ -12,6 +12,8 @@ const SISLogoIcon = ({
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
         className={className}
+        role="img"
+        aria-label="OneThing Invoice logo"
     >
         <defs>
             <linearGradient

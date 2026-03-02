@@ -14,25 +14,35 @@ const SISLogo = ({
             : size === "small"
               ? "text-lg"
               : "text-2xl";
-    const subtitleSize = size === "large" ? "text-sm" : size === "small" ? "text-[11px]" : "text-xs";
+    const subtitleSize =
+        size === "large"
+            ? "text-sm"
+            : size === "small"
+              ? "text-[11px]"
+              : "text-xs";
 
     return (
-        <Link to="/">
+        <Link to="/" aria-label="OneThing Invoice - Home">
             <div className="flex items-center gap-3">
                 {/* Blue square icon */}
-                <div 
-                    className="bg-primary rounded-md flex-shrink-0" 
-                    style={{ 
-                        width: iconSize, 
-                        height: iconSize 
+                <div
+                    className="bg-primary rounded-md flex-shrink-0"
+                    style={{
+                        width: iconSize,
+                        height: iconSize,
                     }}
+                    aria-hidden="true"
                 />
                 <div className="flex flex-col leading-none">
-                    <span className={`font-semibold text-foreground ${textSize}`}>
+                    <span
+                        className={`font-semibold text-foreground ${textSize}`}
+                    >
                         OneThing
                     </span>
                     {showSubtitle && (
-                        <span className={`text-muted-foreground/70 font-normal ${subtitleSize} mt-0.5`}>
+                        <span
+                            className={`text-muted-foreground/70 font-normal ${subtitleSize} mt-0.5`}
+                        >
                             Invoice
                         </span>
                     )}

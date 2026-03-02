@@ -303,6 +303,24 @@ const Index = () => {
                     </div>
                 </div>
             </section>
+
+            {/* Support CTA */}
+            <section className="pb-24 pt-16 px-6">
+                <div className="container max-w-lg mx-auto text-center">
+                    <h2 className="text-2xl font-bold text-foreground mb-4">
+                        Need Help?
+                    </h2>
+                    <p className="text-muted-foreground mb-8">
+                        Have questions or need assistance? We're here to help.
+                    </p>
+                    <Link
+                        to="/support"
+                        className="inline-flex items-center justify-center rounded-xl bg-primary px-8 py-3 text-base font-semibold text-primary-foreground shadow-md hover:opacity-90 transition-all"
+                    >
+                        Get Support
+                    </Link>
+                </div>
+            </section>
         </div>
         </>
     );

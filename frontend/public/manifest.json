@@ -1,0 +1,38 @@
+{
+    "name": "OneThing Invoice",
+    "short_name": "OneThing",
+    "description": "Free online invoice generator. Create professional PDF invoices instantly.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#F5F7FA",
+    "theme_color": "#1F7FBD",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/Icon-iOS-Default-1024x1024@1x.png",
+            "sizes": "1024x1024",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/Icon-iOS-Default-1024x1024@1x.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/Icon-iOS-Default-1024x1024@1x.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+        },
+        {
+            "src": "/Icon-iOS-Default-1024x1024@1x.png",
+            "sizes": "180x180",
+            "type": "image/png",
+            "purpose": "any"
+        }
+    ],
+    "categories": ["business", "finance", "productivity"],
+    "screenshots": []
+}

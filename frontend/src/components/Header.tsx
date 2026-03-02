@@ -153,6 +153,7 @@ const Header = () => {
                                     </button>
                                 </>
                             )}
+                            <ThemeToggle showText />
                             {isAuthenticated && (
                                 <button
                                     onClick={handleSignOut}

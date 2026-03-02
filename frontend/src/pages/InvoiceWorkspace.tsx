@@ -72,9 +72,9 @@ const InvoiceWorkSpace = () => {
             setInvoices((prev) => [invoice, ...prev]);
             await exportInvoicePdf(invoice);
             toast.success("Invoice generated successfully");
-            
+
             // Trigger usage refresh by dispatching a custom event
-            window.dispatchEvent(new CustomEvent('invoice-generated'));
+            window.dispatchEvent(new CustomEvent("invoice-generated"));
         } catch (error) {
             console.error("Error generating invoice:", error);
             toast.error("Failed to generate invoice");
@@ -96,8 +96,12 @@ const InvoiceWorkSpace = () => {
         try {
             // Delete all invoices in parallel
             await Promise.all(invoiceIds.map((id) => deleteInvoice(id)));
-            setInvoices((prev) => prev.filter((inv) => !invoiceIds.includes(inv.id)));
-            toast.success(`${invoiceIds.length} invoice${invoiceIds.length !== 1 ? 's' : ''} deleted successfully`);
+            setInvoices((prev) =>
+                prev.filter((inv) => !invoiceIds.includes(inv.id)),
+            );
+            toast.success(
+                `${invoiceIds.length} invoice${invoiceIds.length !== 1 ? "s" : ""} deleted successfully`,
+            );
         } catch (error) {
             console.error("Error deleting invoices:", error);
             toast.error("Failed to delete some invoices");
@@ -146,10 +150,17 @@ const InvoiceWorkSpace = () => {
                             value="history"
                             className="h-12 sm:h-full rounded-lg text-xs sm:text-sm font-medium gap-1 sm:gap-2 data-[state=active]:bg-card data-[state=active]:shadow-sm flex-col sm:flex-row"
                         >
-                            <Clock className="h-4 w-4" />
-                            History
+                            <div className="flex items-center gap-1 sm:gap-2">
+                                <Clock className="h-4 w-4" />
+                                {invoices.length > 0 && (
+                                    <span className="sm:hidden rounded-full bg-primary/10 text-primary px-1.5 py-0.5 text-xs font-semibold">
+                                        {invoices.length}
+                                    </span>
+                                )}
+                            </div>
+                            <span>History</span>
                             {invoices.length > 0 && (
-                                <span className="ml-0 sm:ml-1 rounded-full bg-primary/10 text-primary px-1.5 sm:px-2 py-0.5 text-xs font-semibold">
+                                <span className="hidden sm:inline ml-1 rounded-full bg-primary/10 text-primary px-2 py-0.5 text-xs font-semibold">
                                     {invoices.length}
                                 </span>
                             )}
@@ -173,8 +184,8 @@ const InvoiceWorkSpace = () => {
                     </TabsContent>
 
                     <TabsContent value="history" className="mt-6">
-                        <HistoryTab 
-                            invoices={invoices} 
+                        <HistoryTab
+                            invoices={invoices}
                             onDelete={handleDeleteInvoice}
                             onBatchDelete={handleBatchDeleteInvoices}
                         />

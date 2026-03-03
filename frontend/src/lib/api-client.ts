@@ -148,3 +148,25 @@ export const feedbackApi = {
         });
     },
 };
+
+// Global Stats API (public - no auth required)
+export interface GlobalStats {
+    totalInvoices: number;
+    lastUpdated: string | null;
+}
+
+export const statsApi = {
+    async getGlobal(): Promise<GlobalStats> {
+        const config = getRuntimeConfig();
+        const response = await fetch(`${config.apiUrl}/stats`);
+        
+        if (!response.ok) {
+            throw new ApiError(
+                `HTTP ${response.status}`,
+                response.status
+            );
+        }
+        
+        return await response.json();
+    },
+};

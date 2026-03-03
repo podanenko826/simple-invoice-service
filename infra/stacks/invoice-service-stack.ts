@@ -253,11 +253,26 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
+        const getGlobalStatsFunction = new NodejsFunction(
+            this,
+            "GetGlobalStatsFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-global-stats.ts"
+                ),
+                handler: "handler",
+                description: "Get global statistics (public endpoint)",
+            }
+        );
+
         // Grant DynamoDB permissions
         this.invoiceDataTable.grantReadData(getTemplateFunction);
         this.invoiceDataTable.grantReadData(listInvoicesFunction);
         this.invoiceDataTable.grantReadData(getInvoiceFunction);
         this.invoiceDataTable.grantReadData(getUsageFunction);
+        this.invoiceDataTable.grantReadData(getGlobalStatsFunction);
         this.invoiceDataTable.grantWriteData(saveTemplateFunction);
         this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
         this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
@@ -384,6 +399,16 @@ export class InvoiceServiceStack extends cdk.Stack {
             "POST",
             new apigateway.LambdaIntegration(saveFeedbackFunction),
             authMethodOptions
+        );
+
+        // Global stats endpoint (public - no auth)
+        const stats = api.root.addResource("stats");
+
+        // GET /stats (public)
+        stats.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getGlobalStatsFunction)
+            // No authMethodOptions - this is a public endpoint
         );
 
         // Create public website with CloudFront distribution

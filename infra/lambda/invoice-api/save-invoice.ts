@@ -47,7 +47,7 @@ export async function handler(event: any) {
 
         await docClient.send(saveCommand);
 
-        // Increment usage counter
+        // Increment user usage counter
         const usageCommand = new UpdateCommand({
             TableName: TABLE_NAME,
             Key: {
@@ -67,6 +67,28 @@ export async function handler(event: any) {
 
         const usageResult = await docClient.send(usageCommand);
         const invoiceCount = usageResult.Attributes?.invoiceCount || 1;
+
+        // Increment global counter (for public stats)
+        const globalCounterCommand = new UpdateCommand({
+            TableName: TABLE_NAME,
+            Key: {
+                userId: "GLOBAL",
+                itemId: "STATS",
+            },
+            UpdateExpression:
+                "SET itemType = :itemType, totalInvoices = if_not_exists(totalInvoices, :zero) + :inc, lastUpdated = :now",
+            ExpressionAttributeValues: {
+                ":itemType": "GLOBAL_STATS",
+                ":zero": 0,
+                ":inc": 1,
+                ":now": now,
+            },
+        });
+
+        // Fire and forget - don't wait for global counter
+        docClient.send(globalCounterCommand).catch(err => 
+            console.error("Failed to update global counter:", err)
+        );
 
         return createResponse(201, {
             message: "Invoice saved successfully",

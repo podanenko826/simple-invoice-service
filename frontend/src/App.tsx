@@ -9,6 +9,7 @@ import InvoiceWorkspace from "./pages/InvoiceWorkspace";
 import About from "./pages/About";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import Support from "./pages/Support";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import ScrollToTop from "./components/ScrollToTop";
@@ -26,6 +27,7 @@ function App() {
                         <Route path="/about" element={<About />} />
                         <Route path="/privacy" element={<Privacy />} />
                         <Route path="/terms" element={<Terms />} />
+                        <Route path="/support" element={<Support />} />
                         <Route
                             path="/workspace"
                             element={

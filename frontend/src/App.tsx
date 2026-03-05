@@ -1,0 +1,50 @@
+import "./App.css";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { AuthProvider } from "./lib/auth/AuthContext";
+import { ThemeProvider } from "./hooks/use-theme";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Login from "./pages/Login";
+import Index from "./pages/Index";
+import InvoiceWorkspace from "./pages/InvoiceWorkspace";
+import About from "./pages/About";
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+import Support from "./pages/Support";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import ScrollToTop from "./components/ScrollToTop";
+
+function App() {
+    return (
+        <HelmetProvider>
+            <ThemeProvider defaultTheme="light" storageKey="sis-ui-theme">
+                <AuthProvider>
+                    <BrowserRouter>
+                        <ScrollToTop />
+                        <Header />
+                        <Routes>
+                            <Route path="/" element={<Index />} />
+                            <Route path="/login" element={<Login />} />
+                            <Route path="/about" element={<About />} />
+                            <Route path="/privacy" element={<Privacy />} />
+                            <Route path="/terms" element={<Terms />} />
+                            <Route path="/support" element={<Support />} />
+                            <Route
+                                path="/workspace"
+                                element={
+                                    <ProtectedRoute>
+                                        <InvoiceWorkspace />
+                                    </ProtectedRoute>
+                                }
+                            />
+                        </Routes>
+                        <Footer />
+                    </BrowserRouter>
+                </AuthProvider>
+            </ThemeProvider>
+        </HelmetProvider>
+    );
+}
+
+export default App;

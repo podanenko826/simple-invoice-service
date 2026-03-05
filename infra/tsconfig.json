@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "module": "NodeNext",
+        "moduleResolution": "NodeNext",
+        "target": "ES2022",
+        "lib": ["ES2022"],
+        "outDir": "cdk.out",
+        "types": ["node"],
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "strict": true,
+        "resolveJsonModule": true,
+        "allowSyntheticDefaultImports": true,
+        "forceConsistentCasingInFileNames": true
+    },
+    "ts-node": {
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
+    },
+    "include": ["./**/*.ts"],
+    "exclude": ["node_modules", "cdk.out"]
+}

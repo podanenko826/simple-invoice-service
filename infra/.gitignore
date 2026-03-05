@@ -1,0 +1,13 @@
+# CDK
+cdk.out
+.cdk.staging
+
+# Build outputs
+*.js
+*.d.ts
+
+# Dependencies
+node_modules
+
+# Logs
+*.log

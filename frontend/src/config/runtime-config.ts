@@ -46,7 +46,6 @@ export async function loadRuntimeConfig(): Promise<RuntimeConfig> {
 
     // In production, fetch from config.json
     try {
-        console.log("Loading config from /config.json (production mode)");
         const response = await fetch("/config.json");
         if (!response.ok) {
             throw new Error(`Failed to load config: ${response.statusText}`);

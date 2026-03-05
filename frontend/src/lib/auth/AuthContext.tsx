@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return () => {
             abort.abort();
         };
-    }, [tokens?.expireAt]);
+    }, [!!tokens]);
 
     // Refresh tokens
     const refreshAuth = useCallback(async () => {

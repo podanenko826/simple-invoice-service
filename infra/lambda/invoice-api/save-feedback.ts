@@ -1,8 +1,11 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 import { createResponse, getUserIdFromEvent } from "./utils";
 
 const s3Client = new S3Client({});
+const snsClient = new SNSClient({});
 const FEEDBACK_BUCKET = process.env.FEEDBACK_BUCKET!;
+const FEEDBACK_TOPIC_ARN = process.env.FEEDBACK_TOPIC_ARN;
 
 interface FeedbackRequest {
     message: string;
@@ -59,6 +62,41 @@ export async function handler(event: any) {
         await s3Client.send(command);
 
         console.log(`Feedback saved: ${key}`);
+
+        // Send SNS notification if topic ARN is configured
+        if (FEEDBACK_TOPIC_ARN) {
+            try {
+                const emailSubject = `New Feedback: ${feedback.rating ? `⭐ ${feedback.rating}/5` : "No rating"}`;
+                const emailBody = `
+New feedback received from OneThing Invoice!
+
+📝 Message:
+${feedback.message}
+
+${feedback.rating ? `⭐ Rating: ${feedback.rating}/5` : ""}
+${feedback.page ? `📄 Page: ${feedback.page}` : ""}
+
+👤 User ID: ${userId}
+🕐 Timestamp: ${timestamp}
+🌐 User Agent: ${feedbackData.userAgent || "N/A"}
+📍 Source IP: ${feedbackData.sourceIp || "N/A"}
+
+📦 S3 Location: s3://${FEEDBACK_BUCKET}/${key}
+                `.trim();
+
+                const snsCommand = new PublishCommand({
+                    TopicArn: FEEDBACK_TOPIC_ARN,
+                    Subject: emailSubject,
+                    Message: emailBody,
+                });
+
+                await snsClient.send(snsCommand);
+                console.log("SNS notification sent successfully");
+            } catch (snsError) {
+                console.error("Failed to send SNS notification:", snsError);
+                // Don't fail the request if SNS fails
+            }
+        }
 
         return createResponse(201, {
             message: "Feedback saved successfully",

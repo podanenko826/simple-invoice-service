@@ -596,12 +596,14 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 id: "sample-1",
                                 description: "Sample Service",
                                 quantity: 1,
+                                unit: "hour",
                                 unitPrice: 1000,
                             },
                             {
                                 id: "sample-2",
                                 description: "Another Item",
                                 quantity: 2,
+                                unit: "item",
                                 unitPrice: 500,
                             },
                         ]}

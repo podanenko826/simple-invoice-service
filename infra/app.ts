@@ -8,7 +8,7 @@ const app = new cdk.App();
 
 const account = "350610702366";
 const domainName = "makeinvoices.app";
-// const alertEmail = "your-email@example.com"; // TODO: Update with your email for monitoring alerts
+const alertEmail = "contact@makeinvoices.app"; 
 
 // Optional: Customize monitoring thresholds
 // Uncomment and adjust values as needed
@@ -42,7 +42,7 @@ const mainStack = new InvoiceServiceStack(app, "InvoiceServiceStack", {
     crossRegionReferences: true,
     certificateArn: certStack.certificateArn,
     domainName: domainName,
-    // alertEmail: alertEmail, // Monitoring alerts will be sent to this email
+    alertEmail: alertEmail, // Monitoring alerts and feedback notifications will be sent to this email
     // monitoringThresholds: monitoringThresholds, // Uncomment to use custom thresholds
     description: "Simple Invoice Service Infrastructure",
 });

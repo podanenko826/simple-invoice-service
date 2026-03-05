@@ -1,7 +1,15 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Download, Loader2, Eye, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+    Clock,
+    Download,
+    Loader2,
+    Eye,
+    Trash2,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     Table,
@@ -37,8 +45,11 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
     const [exportingId, setExportingId] = useState<string | null>(null);
     const [previewingId, setPreviewingId] = useState<string | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [invoiceToDelete, setInvoiceToDelete] = useState<GeneratedInvoice | null>(null);
-    const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(new Set());
+    const [invoiceToDelete, setInvoiceToDelete] =
+        useState<GeneratedInvoice | null>(null);
+    const [selectedInvoices, setSelectedInvoices] = useState<Set<string>>(
+        new Set(),
+    );
     const [batchDeleteDialogOpen, setBatchDeleteDialogOpen] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
 
@@ -126,9 +137,11 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
         }
     };
 
-    const allCurrentPageSelected = currentInvoices.length > 0 && 
+    const allCurrentPageSelected =
+        currentInvoices.length > 0 &&
         currentInvoices.every((inv) => selectedInvoices.has(inv.id));
-    const someCurrentPageSelected = currentInvoices.some((inv) => selectedInvoices.has(inv.id)) && 
+    const someCurrentPageSelected =
+        currentInvoices.some((inv) => selectedInvoices.has(inv.id)) &&
         !allCurrentPageSelected;
 
     if (invoices.length === 0) {
@@ -154,7 +167,8 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                 {selectedInvoices.size > 0 && (
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 sm:px-6 py-3 border-b bg-muted/30 gap-2">
                         <span className="text-sm font-medium">
-                            {selectedInvoices.size} invoice{selectedInvoices.size !== 1 ? 's' : ''} selected
+                            {selectedInvoices.size} invoice
+                            {selectedInvoices.size !== 1 ? "s" : ""} selected
                         </span>
                         <Button
                             variant="destructive"
@@ -167,7 +181,7 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                         </Button>
                     </div>
                 )}
-                
+
                 {/* Desktop Table View */}
                 <CardContent className="p-0 hidden md:block">
                     <Table>
@@ -178,13 +192,19 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                         checked={allCurrentPageSelected}
                                         onCheckedChange={handleSelectAll}
                                         aria-label="Select all on this page"
-                                        className={someCurrentPageSelected ? "data-[state=checked]:bg-primary/50" : ""}
+                                        className={
+                                            someCurrentPageSelected
+                                                ? "data-[state=checked]:bg-primary/50"
+                                                : ""
+                                        }
                                     />
                                 </TableHead>
                                 <TableHead>Invoice #</TableHead>
                                 <TableHead>Client</TableHead>
                                 <TableHead>Date</TableHead>
-                                <TableHead className="text-right">Amount</TableHead>
+                                <TableHead className="text-right">
+                                    Amount
+                                </TableHead>
                                 <TableHead className="w-[160px]" />
                             </TableRow>
                         </TableHeader>
@@ -193,9 +213,14 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                 <TableRow key={invoice.id}>
                                     <TableCell>
                                         <Checkbox
-                                            checked={selectedInvoices.has(invoice.id)}
+                                            checked={selectedInvoices.has(
+                                                invoice.id,
+                                            )}
                                             onCheckedChange={(checked) =>
-                                                handleSelectInvoice(invoice.id, checked as boolean)
+                                                handleSelectInvoice(
+                                                    invoice.id,
+                                                    checked as boolean,
+                                                )
                                             }
                                             aria-label={`Select ${invoice.invoiceNumber}`}
                                         />
@@ -281,9 +306,14 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                             <div className="flex items-start justify-between gap-3">
                                 <div className="flex items-start gap-3 flex-1 min-w-0">
                                     <Checkbox
-                                        checked={selectedInvoices.has(invoice.id)}
+                                        checked={selectedInvoices.has(
+                                            invoice.id,
+                                        )}
                                         onCheckedChange={(checked) =>
-                                            handleSelectInvoice(invoice.id, checked as boolean)
+                                            handleSelectInvoice(
+                                                invoice.id,
+                                                checked as boolean,
+                                            )
                                         }
                                         aria-label={`Select ${invoice.invoiceNumber}`}
                                         className="mt-1"
@@ -296,7 +326,9 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                             {invoice.clientName || "—"}
                                         </div>
                                         <div className="text-xs text-muted-foreground mt-1">
-                                            {new Date(invoice.createdAt).toLocaleDateString()}
+                                            {new Date(
+                                                invoice.createdAt,
+                                            ).toLocaleDateString()}
                                         </div>
                                     </div>
                                 </div>
@@ -306,42 +338,49 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex gap-2 pt-2 border-t border-border">
+                            <div className="flex flex-col sm:flex-row gap-2 pt-2 border-t border-border">
+                                <div className="flex gap-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 gap-2 min-w-0"
+                                        disabled={previewingId === invoice.id}
+                                        onClick={() => handlePreview(invoice)}
+                                    >
+                                        {previewingId === invoice.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Eye className="h-4 w-4" />
+                                        )}
+                                        <span className="truncate">
+                                            Preview
+                                        </span>
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1 gap-2 min-w-0"
+                                        disabled={exportingId === invoice.id}
+                                        onClick={() => handleExport(invoice)}
+                                    >
+                                        {exportingId === invoice.id ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Download className="h-4 w-4" />
+                                        )}
+                                        <span className="truncate">
+                                            Download
+                                        </span>
+                                    </Button>
+                                </div>
                                 <Button
                                     variant="outline"
                                     size="sm"
-                                    className="flex-1 gap-2"
-                                    disabled={previewingId === invoice.id}
-                                    onClick={() => handlePreview(invoice)}
-                                >
-                                    {previewingId === invoice.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Eye className="h-4 w-4" />
-                                    )}
-                                    Preview
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="flex-1 gap-2"
-                                    disabled={exportingId === invoice.id}
-                                    onClick={() => handleExport(invoice)}
-                                >
-                                    {exportingId === invoice.id ? (
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                    ) : (
-                                        <Download className="h-4 w-4" />
-                                    )}
-                                    Download
-                                </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                    className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 sm:w-auto"
                                     onClick={() => handleDeleteClick(invoice)}
                                 >
                                     <Trash2 className="h-4 w-4" />
+                                    <span className="sm:hidden">Delete</span>
                                 </Button>
                             </div>
                         </div>
@@ -350,33 +389,50 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                 {totalPages > 1 && (
                     <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-4 border-t gap-3">
                         <div className="text-sm text-muted-foreground">
-                            Showing {startIndex + 1}-{Math.min(endIndex, invoices.length)} of {invoices.length}
+                            Showing {startIndex + 1}-
+                            {Math.min(endIndex, invoices.length)} of{" "}
+                            {invoices.length}
                         </div>
                         <div className="flex items-center gap-2">
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                onClick={() =>
+                                    setCurrentPage((p) => Math.max(1, p - 1))
+                                }
                                 disabled={currentPage === 1}
                                 className="gap-1"
                             >
                                 <ChevronLeft className="h-4 w-4" />
-                                <span className="hidden sm:inline">Previous</span>
+                                <span className="hidden sm:inline">
+                                    Previous
+                                </span>
                             </Button>
                             <div className="flex items-center gap-1">
-                                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                {Array.from(
+                                    { length: totalPages },
+                                    (_, i) => i + 1,
+                                ).map((page) => {
                                     // Show first page, last page, current page, and pages around current
-                                    const showPage = 
-                                        page === 1 || 
-                                        page === totalPages || 
+                                    const showPage =
+                                        page === 1 ||
+                                        page === totalPages ||
                                         Math.abs(page - currentPage) <= 1;
-                                    
-                                    const showEllipsis = 
+
+                                    const showEllipsis =
                                         (page === 2 && currentPage > 3) ||
-                                        (page === totalPages - 1 && currentPage < totalPages - 2);
+                                        (page === totalPages - 1 &&
+                                            currentPage < totalPages - 2);
 
                                     if (showEllipsis) {
-                                        return <span key={page} className="px-2 text-muted-foreground">...</span>;
+                                        return (
+                                            <span
+                                                key={page}
+                                                className="px-2 text-muted-foreground"
+                                            >
+                                                ...
+                                            </span>
+                                        );
                                     }
 
                                     if (!showPage) {
@@ -386,7 +442,11 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                                     return (
                                         <Button
                                             key={page}
-                                            variant={currentPage === page ? "default" : "outline"}
+                                            variant={
+                                                currentPage === page
+                                                    ? "default"
+                                                    : "outline"
+                                            }
                                             size="sm"
                                             onClick={() => setCurrentPage(page)}
                                             className="w-9 h-9 p-0"
@@ -399,7 +459,11 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                onClick={() =>
+                                    setCurrentPage((p) =>
+                                        Math.min(totalPages, p + 1),
+                                    )
+                                }
                                 disabled={currentPage === totalPages}
                                 className="gap-1"
                             >
@@ -412,14 +476,19 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
             </Card>
 
             {/* Single Delete Dialog */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <AlertDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
                         <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete invoice{" "}
-                            <span className="font-semibold">{invoiceToDelete?.invoiceNumber}</span>?
-                            This action cannot be undone.
+                            <span className="font-semibold">
+                                {invoiceToDelete?.invoiceNumber}
+                            </span>
+                            ? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
@@ -435,14 +504,22 @@ const HistoryTab = ({ invoices, onDelete, onBatchDelete }: HistoryTabProps) => {
             </AlertDialog>
 
             {/* Batch Delete Dialog */}
-            <AlertDialog open={batchDeleteDialogOpen} onOpenChange={setBatchDeleteDialogOpen}>
+            <AlertDialog
+                open={batchDeleteDialogOpen}
+                onOpenChange={setBatchDeleteDialogOpen}
+            >
                 <AlertDialogContent>
                     <AlertDialogHeader>
-                        <AlertDialogTitle>Delete Multiple Invoices</AlertDialogTitle>
+                        <AlertDialogTitle>
+                            Delete Multiple Invoices
+                        </AlertDialogTitle>
                         <AlertDialogDescription>
                             Are you sure you want to delete{" "}
-                            <span className="font-semibold">{selectedInvoices.size} invoice{selectedInvoices.size !== 1 ? 's' : ''}</span>?
-                            This action cannot be undone.
+                            <span className="font-semibold">
+                                {selectedInvoices.size} invoice
+                                {selectedInvoices.size !== 1 ? "s" : ""}
+                            </span>
+                            ? This action cannot be undone.
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>

@@ -124,4 +124,55 @@
         transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
         transition-duration: 200ms;
     }
+
+    /* Safari date input styling fix - comprehensive approach */
+    input[type="date"],
+    .safari-date-fix {
+        color: hsl(var(--foreground)) !important;
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    }
+
+    /* Safari date input pseudo-elements - all parts */
+    input[type="date"]::-webkit-datetime-edit,
+    input[type="date"]::-webkit-datetime-edit-text,
+    input[type="date"]::-webkit-datetime-edit-month-field,
+    input[type="date"]::-webkit-datetime-edit-day-field,
+    input[type="date"]::-webkit-datetime-edit-year-field,
+    input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+    .safari-date-fix::-webkit-datetime-edit,
+    .safari-date-fix::-webkit-datetime-edit-text,
+    .safari-date-fix::-webkit-datetime-edit-month-field,
+    .safari-date-fix::-webkit-datetime-edit-day-field,
+    .safari-date-fix::-webkit-datetime-edit-year-field,
+    .safari-date-fix::-webkit-datetime-edit-fields-wrapper {
+        color: hsl(var(--foreground)) !important;
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
+        background: transparent !important;
+    }
+
+    /* Force color inheritance for all date input content */
+    input[type="date"] *,
+    .safari-date-fix * {
+        color: inherit !important;
+        -webkit-text-fill-color: inherit !important;
+    }
+}
+
+@layer utilities {
+    /* Safari date input fix utility */
+    .safari-date-input {
+        color: hsl(var(--foreground)) !important;
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
+    }
+
+    .safari-date-input::-webkit-datetime-edit,
+    .safari-date-input::-webkit-datetime-edit-text,
+    .safari-date-input::-webkit-datetime-edit-month-field,
+    .safari-date-input::-webkit-datetime-edit-day-field,
+    .safari-date-input::-webkit-datetime-edit-year-field,
+    .safari-date-input::-webkit-datetime-edit-fields-wrapper {
+        color: hsl(var(--foreground)) !important;
+        -webkit-text-fill-color: hsl(var(--foreground)) !important;
+        background: transparent !important;
+    }
 }

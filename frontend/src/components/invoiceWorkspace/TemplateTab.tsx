@@ -597,7 +597,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 description: "Sample Service",
                                 detail: "",
                                 quantity: 1,
-                                unit: "hours",
+                                unit: "hour",
                                 unitPrice: 1000,
                             },
                             {
@@ -605,7 +605,7 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                 description: "Another Item",
                                 detail: "",
                                 quantity: 2,
-                                unit: "items",
+                                unit: "item",
                                 unitPrice: 500,
                             },
                         ]}

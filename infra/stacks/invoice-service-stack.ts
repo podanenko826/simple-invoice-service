@@ -4,6 +4,8 @@ import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as apigateway from "aws-cdk-lib/aws-apigateway";
 import { NodejsFunction } from "aws-cdk-lib/aws-lambda-nodejs";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as sns from "aws-cdk-lib/aws-sns";
+import * as subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import { Construct } from "constructs";
 import { Passwordless } from "./constructs/cognito-paswordless/cognito-paswordless.js";
 import { PublicWebsite } from "./constructs/public-websites/public-websites.js";
@@ -128,11 +130,31 @@ export class InvoiceServiceStack extends cdk.Stack {
             logLevel: environment === "dev" ? "DEBUG" : "INFO",
         });
 
+        // SNS Topic for feedback notifications
+        let feedbackTopic: sns.Topic | undefined;
+        if (props.alertEmail) {
+            feedbackTopic = new sns.Topic(this, "FeedbackTopic", {
+                displayName: "OneThing Invoice Feedback Notifications",
+                topicName: `${projectNamePrfix}-feedback-${environment}`,
+            });
+
+            // Subscribe email to the topic
+            feedbackTopic.addSubscription(
+                new subscriptions.EmailSubscription(props.alertEmail)
+            );
+
+            new cdk.CfnOutput(this, "FeedbackTopicArn", {
+                value: feedbackTopic.topicArn,
+                description: "SNS Topic ARN for feedback notifications",
+            });
+        }
+
         // Common Lambda configuration
         const lambdaEnvironment = {
             TABLE_NAME: this.invoiceDataTable.tableName,
             BUCKET_NAME: this.invoiceBucket.bucketName,
             FEEDBACK_BUCKET: this.feedbackBucket.bucketName,
+            FEEDBACK_TOPIC_ARN: feedbackTopic?.topicArn || "",
         };
 
         const lambdaProps = {
@@ -253,11 +275,26 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
+        const getGlobalStatsFunction = new NodejsFunction(
+            this,
+            "GetGlobalStatsFunction",
+            {
+                ...lambdaProps,
+                entry: path.join(
+                    __dirname,
+                    "../lambda/invoice-api/get-global-stats.ts"
+                ),
+                handler: "handler",
+                description: "Get global statistics (public endpoint)",
+            }
+        );
+
         // Grant DynamoDB permissions
         this.invoiceDataTable.grantReadData(getTemplateFunction);
         this.invoiceDataTable.grantReadData(listInvoicesFunction);
         this.invoiceDataTable.grantReadData(getInvoiceFunction);
         this.invoiceDataTable.grantReadData(getUsageFunction);
+        this.invoiceDataTable.grantReadData(getGlobalStatsFunction);
         this.invoiceDataTable.grantWriteData(saveTemplateFunction);
         this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
         this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
@@ -267,6 +304,11 @@ export class InvoiceServiceStack extends cdk.Stack {
         this.invoiceBucket.grantRead(getInvoiceFunction);
         this.invoiceBucket.grantRead(listInvoicesFunction);
         this.feedbackBucket.grantWrite(saveFeedbackFunction);
+
+        // Grant SNS permissions
+        if (feedbackTopic) {
+            feedbackTopic.grantPublish(saveFeedbackFunction);
+        }
 
         // Create API Gateway (without expensive cache cluster)
         const apiCorsOrigins = ["http://localhost:5173"];
@@ -384,6 +426,16 @@ export class InvoiceServiceStack extends cdk.Stack {
             "POST",
             new apigateway.LambdaIntegration(saveFeedbackFunction),
             authMethodOptions
+        );
+
+        // Global stats endpoint (public - no auth)
+        const stats = api.root.addResource("stats");
+
+        // GET /stats (public)
+        stats.addMethod(
+            "GET",
+            new apigateway.LambdaIntegration(getGlobalStatsFunction)
+            // No authMethodOptions - this is a public endpoint
         );
 
         // Create public website with CloudFront distribution

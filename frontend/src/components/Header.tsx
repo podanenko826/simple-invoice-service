@@ -55,8 +55,32 @@ const Header = () => {
 
     // Close mobile menu when route changes
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMobileMenuOpen(false);
     }, [location.pathname]);
+
+    // Calculate mobile navigation items
+    const getMobileNavItems = () => {
+        const items = [];
+
+        // Always include theme toggle
+        items.push("theme");
+
+        // Add workspace-specific items
+        if (location.pathname === "/workspace") {
+            items.push("feedback");
+        }
+
+        // Add auth-specific items
+        if (isAuthenticated) {
+            items.push("signout");
+        }
+
+        return items;
+    };
+
+    const mobileNavItems = getMobileNavItems();
+    const shouldShowDirectButtons = mobileNavItems.length <= 2;
 
     return (
         <>
@@ -106,22 +130,54 @@ const Header = () => {
                         )}
                     </nav>
 
-                    {/* Mobile Menu Button */}
-                    <button
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="md:hidden p-2 text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Toggle menu"
-                    >
-                        {mobileMenuOpen ? (
-                            <X className="h-5 w-5" />
+                    {/* Mobile Navigation - Smart Layout */}
+                    <div className="md:hidden flex items-center gap-2">
+                        {shouldShowDirectButtons ? (
+                            // Direct buttons when 1-2 items
+                            <>
+                                {location.pathname === "/workspace" && (
+                                    <button
+                                        onClick={() => setFeedbackOpen(true)}
+                                        className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                                        aria-label="Send feedback"
+                                    >
+                                        <MessageSquare className="h-5 w-5" />
+                                    </button>
+                                )}
+                                <ThemeToggle />
+                                {isAuthenticated && (
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleSignOut}
+                                        className="text-muted-foreground"
+                                        aria-label="Sign out"
+                                    >
+                                        <LogOut className="h-4 w-4" />
+                                    </Button>
+                                )}
+                            </>
                         ) : (
-                            <Menu className="h-5 w-5" />
+                            // Hamburger menu when 3+ items
+                            <button
+                                onClick={() =>
+                                    setMobileMenuOpen(!mobileMenuOpen)
+                                }
+                                className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                                aria-label="Toggle menu"
+                            >
+                                {mobileMenuOpen ? (
+                                    <X className="h-5 w-5" />
+                                ) : (
+                                    <Menu className="h-5 w-5" />
+                                )}
+                            </button>
                         )}
-                    </button>
+                    </div>
                 </div>
 
-                {/* Mobile Navigation */}
-                {mobileMenuOpen && (
+                {/* Mobile Navigation Menu (only shown when using hamburger) */}
+                {!shouldShowDirectButtons && mobileMenuOpen && (
                     <div className="md:hidden border-t border-border bg-card">
                         <nav className="container py-4 space-y-3">
                             {location.pathname === "/workspace" && (

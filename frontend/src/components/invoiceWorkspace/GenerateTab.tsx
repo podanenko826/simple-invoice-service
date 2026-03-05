@@ -242,14 +242,14 @@ const GenerateTab = ({
                     <Card>
                         <CardHeader className="pb-4">
                             <CardTitle className="text-lg">
-                                Invoice Details
+                                Invoice Details (Updated)
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            <div className="grid gap-4 sm:grid-cols-3">
+                            <div className="grid gap-4 grid-cols-1 md:grid-cols-3">
                                 <div className="space-y-2">
                                     <Label htmlFor="invoiceNumber">
-                                        Invoice Number
+                                        Invoice #
                                     </Label>
                                     <Input
                                         id="invoiceNumber"
@@ -305,9 +305,10 @@ const GenerateTab = ({
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent>
-                            <div className="space-y-3">
-                                <div className="hidden sm:grid sm:grid-cols-[1fr_80px_100px_120px_80px_40px] gap-3 text-xs font-medium text-muted-foreground px-1">
+                        <CardContent className="overflow-hidden">
+                            <div className="space-y-3 min-w-0">
+                                {/* Desktop Table Header */}
+                                <div className="hidden lg:grid lg:grid-cols-[2fr_50px_70px_80px_60px_30px] gap-2 text-xs font-medium text-muted-foreground px-1">
                                     <span>Description</span>
                                     <span>Qty</span>
                                     <span>Unit</span>
@@ -315,106 +316,426 @@ const GenerateTab = ({
                                     <span>Total</span>
                                     <span />
                                 </div>
-                                <Separator className="hidden sm:block" />
+                                <Separator className="hidden lg:block" />
+
+                                {/* Line Items */}
                                 {lineItems.map((item) => (
-                                    <div
-                                        key={item.id}
-                                        className="grid gap-3 sm:grid-cols-[1fr_80px_100px_120px_80px_40px] items-start"
-                                    >
-                                        <div className="space-y-1.5">
+                                    <div key={item.id}>
+                                        {/* Desktop Layout - Large screens only */}
+                                        <div className="hidden lg:grid lg:grid-cols-[2fr_50px_70px_80px_60px_30px] gap-2 items-start overflow-hidden">
+                                            <div className="space-y-1.5 min-w-0">
+                                                <Input
+                                                    placeholder="Item name (e.g. AWS Infrastructure DevOps)"
+                                                    value={item.description}
+                                                    className="min-w-0"
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "description",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <Textarea
+                                                    placeholder="Description (optional)"
+                                                    rows={1}
+                                                    className="min-h-[32px] text-xs resize-none min-w-0"
+                                                    value={item.detail}
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "detail",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
                                             <Input
-                                                placeholder="Item name (e.g. AWS Infrastructure DevOps)"
-                                                value={item.description}
+                                                type="number"
+                                                min={1}
+                                                className="min-w-0"
+                                                value={item.quantity}
                                                 onChange={(e) =>
                                                     updateLineItem(
                                                         item.id,
-                                                        "description",
-                                                        e.target.value,
+                                                        "quantity",
+                                                        Number(e.target.value),
                                                     )
                                                 }
                                             />
-                                            <Textarea
-                                                placeholder="Description (optional)"
-                                                rows={1}
-                                                className="min-h-[32px] text-xs resize-none"
-                                                value={item.detail}
+                                            <Select
+                                                value={item.unit}
+                                                onValueChange={(value) =>
+                                                    updateLineItem(
+                                                        item.id,
+                                                        "unit",
+                                                        value,
+                                                    )
+                                                }
+                                            >
+                                                <SelectTrigger className="min-w-0">
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="hours">
+                                                        Hours
+                                                    </SelectItem>
+                                                    <SelectItem value="days">
+                                                        Days
+                                                    </SelectItem>
+                                                    <SelectItem value="months">
+                                                        Months
+                                                    </SelectItem>
+                                                    <SelectItem value="items">
+                                                        Items
+                                                    </SelectItem>
+                                                    <SelectItem value="fixed">
+                                                        Fixed
+                                                    </SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <Input
+                                                type="number"
+                                                min={0}
+                                                step="0.01"
+                                                placeholder="0.00"
+                                                className="min-w-0"
+                                                value={item.unitPrice || ""}
                                                 onChange={(e) =>
                                                     updateLineItem(
                                                         item.id,
-                                                        "detail",
-                                                        e.target.value,
+                                                        "unitPrice",
+                                                        Number(e.target.value),
                                                     )
                                                 }
                                             />
+                                            <div className="flex items-center h-10 text-sm font-medium px-1 min-w-0 truncate">
+                                                {(
+                                                    item.quantity *
+                                                    item.unitPrice
+                                                ).toFixed(2)}
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-10 w-10 text-muted-foreground hover:text-destructive"
+                                                onClick={() =>
+                                                    removeLineItem(item.id)
+                                                }
+                                                disabled={lineItems.length <= 1}
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
                                         </div>
-                                        <Input
-                                            type="number"
-                                            min={1}
-                                            value={item.quantity}
-                                            onChange={(e) =>
-                                                updateLineItem(
-                                                    item.id,
-                                                    "quantity",
-                                                    Number(e.target.value),
-                                                )
-                                            }
-                                        />
-                                        <Select
-                                            value={item.unit}
-                                            onValueChange={(value) =>
-                                                updateLineItem(
-                                                    item.id,
-                                                    "unit",
-                                                    value,
-                                                )
-                                            }
-                                        >
-                                            <SelectTrigger>
-                                                <SelectValue />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="hours">Hours</SelectItem>
-                                                <SelectItem value="days">Days</SelectItem>
-                                                <SelectItem value="months">Months</SelectItem>
-                                                <SelectItem value="items">Items</SelectItem>
-                                                <SelectItem value="fixed">Fixed</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <Input
-                                            type="number"
-                                            min={0}
-                                            step="0.01"
-                                            placeholder="0.00"
-                                            value={item.unitPrice || ""}
-                                            onChange={(e) =>
-                                                updateLineItem(
-                                                    item.id,
-                                                    "unitPrice",
-                                                    Number(e.target.value),
-                                                )
-                                            }
-                                        />
-                                        <div className="flex items-center h-10 text-sm font-medium px-1">
-                                            {(
-                                                item.quantity * item.unitPrice
-                                            ).toFixed(2)}
+
+                                        {/* Tablet Layout - Medium screens */}
+                                        <div className="hidden sm:block lg:hidden border border-border rounded-lg p-4 space-y-3">
+                                            {/* Description Section */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">
+                                                    Item Description
+                                                </Label>
+                                                <Input
+                                                    placeholder="Item name (e.g. AWS Infrastructure DevOps)"
+                                                    value={item.description}
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "description",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <Textarea
+                                                    placeholder="Additional details (optional)"
+                                                    rows={1}
+                                                    className="min-h-[32px] text-xs resize-none"
+                                                    value={item.detail}
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "detail",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+
+                                            {/* Quantity, Unit, Rate, Total in 2x2 grid */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Quantity
+                                                    </Label>
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        value={item.quantity}
+                                                        onChange={(e) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "quantity",
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Unit
+                                                    </Label>
+                                                    <Select
+                                                        value={item.unit}
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "unit",
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="hours">
+                                                                Hours
+                                                            </SelectItem>
+                                                            <SelectItem value="days">
+                                                                Days
+                                                            </SelectItem>
+                                                            <SelectItem value="months">
+                                                                Months
+                                                            </SelectItem>
+                                                            <SelectItem value="items">
+                                                                Items
+                                                            </SelectItem>
+                                                            <SelectItem value="fixed">
+                                                                Fixed
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Rate
+                                                    </Label>
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder="0.00"
+                                                        value={
+                                                            item.unitPrice || ""
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "unitPrice",
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Total
+                                                    </Label>
+                                                    <div className="flex items-center h-10 px-3 py-2 bg-muted rounded-md text-sm font-medium">
+                                                        {(
+                                                            item.quantity *
+                                                            item.unitPrice
+                                                        ).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Delete Button */}
+                                            <div className="flex justify-end pt-2 border-t border-border">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive"
+                                                    onClick={() =>
+                                                        removeLineItem(item.id)
+                                                    }
+                                                    disabled={
+                                                        lineItems.length <= 1
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Remove Item
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-10 w-10 text-muted-foreground hover:text-destructive"
-                                            onClick={() =>
-                                                removeLineItem(item.id)
-                                            }
-                                            disabled={lineItems.length <= 1}
-                                        >
-                                            <Trash2 className="h-4 w-4" />
-                                        </Button>
+
+                                        {/* Mobile Layout - Small screens only */}
+                                        <div className="block sm:hidden border border-border rounded-lg p-4 space-y-4">
+                                            {/* Description Section */}
+                                            <div className="space-y-2">
+                                                <Label className="text-sm font-medium">
+                                                    Item Description
+                                                </Label>
+                                                <Input
+                                                    placeholder="Item name (e.g. AWS Infrastructure DevOps)"
+                                                    value={item.description}
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "description",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                                <Textarea
+                                                    placeholder="Additional details (optional)"
+                                                    rows={2}
+                                                    className="text-xs resize-none"
+                                                    value={item.detail}
+                                                    onChange={(e) =>
+                                                        updateLineItem(
+                                                            item.id,
+                                                            "detail",
+                                                            e.target.value,
+                                                        )
+                                                    }
+                                                />
+                                            </div>
+
+                                            {/* Quantity & Unit Section */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Quantity
+                                                    </Label>
+                                                    <Input
+                                                        type="number"
+                                                        min={1}
+                                                        value={item.quantity}
+                                                        onChange={(e) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "quantity",
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Unit
+                                                    </Label>
+                                                    <Select
+                                                        value={item.unit}
+                                                        onValueChange={(
+                                                            value,
+                                                        ) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "unit",
+                                                                value,
+                                                            )
+                                                        }
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="hours">
+                                                                Hours
+                                                            </SelectItem>
+                                                            <SelectItem value="days">
+                                                                Days
+                                                            </SelectItem>
+                                                            <SelectItem value="months">
+                                                                Months
+                                                            </SelectItem>
+                                                            <SelectItem value="items">
+                                                                Items
+                                                            </SelectItem>
+                                                            <SelectItem value="fixed">
+                                                                Fixed
+                                                            </SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                            </div>
+
+                                            {/* Rate & Total Section */}
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Rate
+                                                    </Label>
+                                                    <Input
+                                                        type="number"
+                                                        min={0}
+                                                        step="0.01"
+                                                        placeholder="0.00"
+                                                        value={
+                                                            item.unitPrice || ""
+                                                        }
+                                                        onChange={(e) =>
+                                                            updateLineItem(
+                                                                item.id,
+                                                                "unitPrice",
+                                                                Number(
+                                                                    e.target
+                                                                        .value,
+                                                                ),
+                                                            )
+                                                        }
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-sm font-medium">
+                                                        Total
+                                                    </Label>
+                                                    <div className="flex items-center h-10 px-3 py-2 bg-muted rounded-md text-sm font-medium">
+                                                        {(
+                                                            item.quantity *
+                                                            item.unitPrice
+                                                        ).toFixed(2)}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* Delete Button */}
+                                            <div className="flex justify-end pt-2 border-t border-border">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="gap-2 text-muted-foreground hover:text-destructive hover:border-destructive"
+                                                    onClick={() =>
+                                                        removeLineItem(item.id)
+                                                    }
+                                                    disabled={
+                                                        lineItems.length <= 1
+                                                    }
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                    Remove Item
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                                 <Separator />
-                                <div className="flex justify-end pr-14">
-                                    <div className="text-right space-y-1">
+
+                                {/* Totals Section */}
+                                <div className="flex justify-end lg:pr-14">
+                                    <div className="text-right space-y-1 w-full sm:w-auto">
                                         <div className="flex justify-between gap-4 text-sm">
                                             <span className="text-muted-foreground">
                                                 Subtotal
@@ -458,34 +779,34 @@ const GenerateTab = ({
                     </Card>
                 </div>
 
-                <div className="flex flex-col sm:flex-row justify-end gap-3">
+                <div className="flex flex-col xl:flex-row justify-end gap-2 xl:gap-3">
                     <Button
                         onClick={() => setFeedbackDialogOpen(true)}
                         size="lg"
                         variant="ghost"
-                        className="gap-2 text-muted-foreground w-full sm:w-auto"
+                        className="gap-2 text-muted-foreground w-full xl:w-auto"
                     >
                         <MessageSquare className="h-4 w-4" />
-                        Send Feedback
+                        <span className="xl:inline">Send Feedback</span>
                     </Button>
                     <Button
                         onClick={handlePreviewPdf}
                         size="lg"
                         variant="outline"
                         disabled={!canGenerate}
-                        className="gap-2 w-full sm:w-auto text-muted-foreground"
+                        className="gap-2 w-full xl:w-auto text-muted-foreground"
                     >
                         <Eye className="h-4 w-4" />
-                        Preview PDF
+                        <span className="xl:inline">Preview PDF</span>
                     </Button>
                     <Button
                         onClick={handleGenerate}
                         size="lg"
                         disabled={!canGenerate}
-                        className="gap-2 w-full sm:w-auto"
+                        className="gap-2 w-full xl:w-auto"
                     >
                         <FileText className="h-4 w-4" />
-                        Generate Invoice
+                        <span className="xl:inline">Generate Invoice</span>
                     </Button>
                 </div>
             </div>

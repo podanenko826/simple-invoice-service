@@ -18,6 +18,7 @@ import {
 } from "@/lib/storage";
 import { toast } from "sonner";
 import { exportInvoicePdf } from "@/lib/exportPdf";
+import { statsCacheUtils } from "@/lib/api-client";
 
 const InvoiceWorkSpace = () => {
     const [template, setTemplate] = useState<InvoiceTemplate>(defaultTemplate);
@@ -75,6 +76,9 @@ const InvoiceWorkSpace = () => {
 
             // Trigger usage refresh by dispatching a custom event
             window.dispatchEvent(new CustomEvent("invoice-generated"));
+
+            // Clear global stats cache since the count has changed
+            statsCacheUtils.clear();
         } catch (error) {
             console.error("Error generating invoice:", error);
             toast.error("Failed to generate invoice");

@@ -28,7 +28,8 @@ async function fetchWithAuth(
     // Check if token is expired or about to expire (within 5 minutes)
     const now = new Date();
     const expireAt = tokens.expireAt ? new Date(tokens.expireAt) : null;
-    const isExpired = expireAt && expireAt.valueOf() - now.valueOf() < 5 * 60 * 1000;
+    const isExpired =
+        expireAt && expireAt.valueOf() - now.valueOf() < 5 * 60 * 1000;
 
     // If token is expired and we have a refresh token, try to refresh
     if (isExpired && tokens.refreshToken) {
@@ -155,18 +156,74 @@ export interface GlobalStats {
     lastUpdated: string | null;
 }
 
+// Cache management utilities
+const STATS_CACHE_KEY = "global-stats-cache";
+const CACHE_EXPIRY = 15 * 60 * 1000; // 15 minutes in milliseconds
+
+export const statsCacheUtils = {
+    clear(): void {
+        try {
+            localStorage.removeItem(STATS_CACHE_KEY);
+        } catch (error) {
+            console.warn("Failed to clear stats cache:", error);
+        }
+    },
+
+    get(): GlobalStats | null {
+        try {
+            const cached = localStorage.getItem(STATS_CACHE_KEY);
+            if (cached) {
+                const { data, timestamp } = JSON.parse(cached);
+                const now = Date.now();
+
+                // Return cached data if it's still valid
+                if (now - timestamp < CACHE_EXPIRY) {
+                    return data;
+                }
+            }
+        } catch (error) {
+            console.warn("Failed to parse cached stats:", error);
+        }
+        return null;
+    },
+
+    set(data: GlobalStats): void {
+        try {
+            localStorage.setItem(
+                STATS_CACHE_KEY,
+                JSON.stringify({
+                    data,
+                    timestamp: Date.now(),
+                }),
+            );
+        } catch (error) {
+            console.warn("Failed to cache stats:", error);
+        }
+    },
+};
+
 export const statsApi = {
     async getGlobal(): Promise<GlobalStats> {
         const config = getRuntimeConfig();
-        const response = await fetch(`${config.apiUrl}/stats`);
-        
-        if (!response.ok) {
-            throw new ApiError(
-                `HTTP ${response.status}`,
-                response.status
-            );
+
+        // Check cache first
+        const cached = statsCacheUtils.get();
+        if (cached) {
+            return cached;
         }
-        
-        return await response.json();
+
+        // Fetch fresh data
+        const response = await fetch(`${config.apiUrl}/stats`);
+
+        if (!response.ok) {
+            throw new ApiError(`HTTP ${response.status}`, response.status);
+        }
+
+        const data = await response.json();
+
+        // Cache the fresh data
+        statsCacheUtils.set(data);
+
+        return data;
     },
 };

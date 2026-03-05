@@ -55,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 );
             },
             isRefreshingCb: (isRefreshing) => {
-                console.log("Token refresh status:", isRefreshing);
             },
         });
 

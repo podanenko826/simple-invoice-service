@@ -33,14 +33,18 @@ export function ThemeProvider({
     useEffect(() => {
         const root = window.document.documentElement;
 
-        root.classList.remove("light", "dark");
-        root.classList.add(theme);
+        if (root && root.classList) {
+            root.classList.remove("light", "dark");
+            root.classList.add(theme);
+        }
 
         // Update body background color to match theme
-        const isDark = theme === "dark";
-        document.body.style.backgroundColor = isDark
-            ? "hsl(210 50% 7%)"
-            : "hsl(210 20% 98%)";
+        if (document.body) {
+            const isDark = theme === "dark";
+            document.body.style.backgroundColor = isDark
+                ? "hsl(210 50% 7%)"
+                : "hsl(210 20% 98%)";
+        }
     }, [theme]);
 
     const value = {

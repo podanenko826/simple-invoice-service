@@ -1,7 +1,14 @@
 import * as React from "react";
-import * as RechartsPrimitive from "recharts";
+// Temporarily disabled recharts to fix production build issue
+// import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
+
+// Placeholder types until recharts is re-enabled
+const RechartsPrimitive = {
+    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    Tooltip: () => null,
+} as any;
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;

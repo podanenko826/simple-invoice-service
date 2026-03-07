@@ -15,18 +15,16 @@ import * as route53 from "aws-cdk-lib/aws-route53";
 import * as targets from "aws-cdk-lib/aws-route53-targets";
 import {
     Monitoring,
-    MonitoringThresholds,
 } from "./constructs/monitoring/monitoring.js";
+import { ExtendedStackProps } from "./ExtendedStackProps.js";
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export interface InvoiceServiceStackProps extends cdk.StackProps {
-    readonly certificateArn?: string;
-    readonly domainName?: string;
-    readonly alertEmail?: string;
-    readonly monitoringThresholds?: MonitoringThresholds;
+interface InfrastructureStackProps extends ExtendedStackProps {
+    environment: string;
+    certificateArn: string;
 }
 
 export class InvoiceServiceStack extends cdk.Stack {
@@ -37,11 +35,12 @@ export class InvoiceServiceStack extends cdk.Stack {
     public readonly website: PublicWebsite;
     public readonly api: apigateway.RestApi;
 
-    constructor(scope: Construct, id: string, props: InvoiceServiceStackProps) {
+    constructor(scope: Construct, id: string, props: InfrastructureStackProps) {
         super(scope, id, props);
 
-        const projectNamePrfix = "sis";
-        const environment = "dev";
+        const config = props.config;
+        const projectNamePrfix = config.projectNamePrefix;
+        const environment = props.environment;
         const removalPolicy =
             environment === "dev"
                 ? cdk.RemovalPolicy.DESTROY
@@ -50,7 +49,7 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // S3 Bucket for storing invoice PDFs
         this.invoiceBucket = new s3.Bucket(this, "InvoiceBucket", {
-            bucketName: `${projectNamePrfix}-invoice-pdfs-${account}`,
+            bucketName: `${projectNamePrfix}-invoices-${account}`,
             encryption: s3.BucketEncryption.S3_MANAGED,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             versioned: true,
@@ -82,7 +81,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         // DynamoDB Table for all invoice data (templates + invoices)
         // Single table design with composite sort key
         this.invoiceDataTable = new dynamodb.Table(this, "InvoiceDataTable", {
-            tableName: `${projectNamePrfix}-invoice-data-${environment}`,
+            tableName: `${projectNamePrfix}-data`,
             partitionKey: {
                 name: "userId",
                 type: dynamodb.AttributeType.STRING,
@@ -116,12 +115,14 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // Cognito Passwordless Authentication
         const allowedOrigins = ["http://localhost:5173"];
-        if (props.domainName) {
-            allowedOrigins.push(`https://${props.domainName}`);
+        if (config.domainName) {
+            allowedOrigins.push(`https://${config.domainName}`);
         }
 
         // @todo check how we put this API KEY
         this.auth = new Passwordless(this, "Auth", {
+            projectNamePrefix: projectNamePrfix,
+            environment: environment,
             allowedOrigins: allowedOrigins, // Vite dev server + production domain
             magicLink: {
                 emailFromAddress: "noreply@em5604.makeinvoices.app",
@@ -132,15 +133,15 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // SNS Topic for feedback notifications
         let feedbackTopic: sns.Topic | undefined;
-        if (props.alertEmail) {
+        if (config.alertEmail) {
             feedbackTopic = new sns.Topic(this, "FeedbackTopic", {
-                displayName: "OneThing Invoice Feedback Notifications",
-                topicName: `${projectNamePrfix}-feedback-${environment}`,
+                displayName: `OneThing Invoice Feedback - ${environment}`,
+                topicName: `${projectNamePrfix}-feedback`,
             });
 
             // Subscribe email to the topic
             feedbackTopic.addSubscription(
-                new subscriptions.EmailSubscription(props.alertEmail)
+                new subscriptions.EmailSubscription(config.alertEmail)
             );
 
             new cdk.CfnOutput(this, "FeedbackTopicArn", {
@@ -174,12 +175,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "GetTemplateFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-get-template`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/get-template.ts"
+                    "../../lambda/invoice-api/get-template.ts"
                 ),
                 handler: "handler",
-                description: "Get user's invoice template",
+                description: `[${environment}] Get user's invoice template`,
             }
         );
 
@@ -188,12 +190,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "SaveTemplateFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-save-template`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/save-template.ts"
+                    "../../lambda/invoice-api/save-template.ts"
                 ),
                 handler: "handler",
-                description: "Save user's invoice template",
+                description: `[${environment}] Save user's invoice template`,
             }
         );
 
@@ -203,12 +206,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "ListInvoicesFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-list-invoices`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/list-invoices.ts"
+                    "../../lambda/invoice-api/list-invoices.ts"
                 ),
                 handler: "handler",
-                description: "List all invoices for user",
+                description: `[${environment}] List all invoices for user`,
             }
         );
 
@@ -217,12 +221,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "GetInvoiceFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-get-invoice`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/get-invoice.ts"
+                    "../../lambda/invoice-api/get-invoice.ts"
                 ),
                 handler: "handler",
-                description: "Get specific invoice",
+                description: `[${environment}] Get specific invoice`,
             }
         );
 
@@ -231,12 +236,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "SaveInvoiceFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-save-invoice`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/save-invoice.ts"
+                    "../../lambda/invoice-api/save-invoice.ts"
                 ),
                 handler: "handler",
-                description: "Save new invoice",
+                description: `[${environment}] Save new invoice`,
             }
         );
 
@@ -245,20 +251,22 @@ export class InvoiceServiceStack extends cdk.Stack {
             "DeleteInvoiceFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-delete-invoice`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/delete-invoice.ts"
+                    "../../lambda/invoice-api/delete-invoice.ts"
                 ),
                 handler: "handler",
-                description: "Delete invoice",
+                description: `[${environment}] Delete invoice`,
             }
         );
 
         const getUsageFunction = new NodejsFunction(this, "GetUsageFunction", {
             ...lambdaProps,
-            entry: path.join(__dirname, "../lambda/invoice-api/get-usage.ts"),
+            functionName: `${projectNamePrfix}-get-usage`,
+            entry: path.join(__dirname, "../../lambda/invoice-api/get-usage.ts"),
             handler: "handler",
-            description: "Get user usage statistics",
+            description: `[${environment}] Get user usage statistics`,
         });
 
         const saveFeedbackFunction = new NodejsFunction(
@@ -266,12 +274,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "SaveFeedbackFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-save-feedback`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/save-feedback.ts"
+                    "../../lambda/invoice-api/save-feedback.ts"
                 ),
                 handler: "handler",
-                description: "Save user feedback to S3",
+                description: `[${environment}] Save user feedback to S3`,
             }
         );
 
@@ -280,12 +289,13 @@ export class InvoiceServiceStack extends cdk.Stack {
             "GetGlobalStatsFunction",
             {
                 ...lambdaProps,
+                functionName: `${projectNamePrfix}-get-global-stats`,
                 entry: path.join(
                     __dirname,
-                    "../lambda/invoice-api/get-global-stats.ts"
+                    "../../lambda/invoice-api/get-global-stats.ts"
                 ),
                 handler: "handler",
-                description: "Get global statistics (public endpoint)",
+                description: `[${environment}] Get global statistics (public endpoint)`,
             }
         );
 
@@ -312,13 +322,13 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // Create API Gateway (without expensive cache cluster)
         const apiCorsOrigins = ["http://localhost:5173"];
-        if (props.domainName) {
-            apiCorsOrigins.push(`https://${props.domainName}`);
+        if (config.domainName) {
+            apiCorsOrigins.push(`https://${config.domainName}`);
         }
 
         const api = new apigateway.RestApi(this, "InvoiceApi", {
-            restApiName: `${projectNamePrfix}-invoice-api-${environment}`,
-            description: "API for invoice management",
+            restApiName: `${projectNamePrfix}-api`,
+            description: `[${environment}] Invoice management API`,
             deployOptions: {
                 stageName: "prod",
                 metricsEnabled: true,
@@ -444,22 +454,24 @@ export class InvoiceServiceStack extends cdk.Stack {
             userPoolClientId: this.auth.userPoolClient.userPoolClientId,
             apiUrl: api.url,
             certificateArn: props.certificateArn,
-            domainName: props.domainName,
+            domainName: config.domainName,
+            projectNamePrefix: projectNamePrfix,
+            environment: environment,
         });
 
         // Create Route53 A record pointing to CloudFront
-        if (props.domainName) {
+        if (config.domainName) {
             const hostedZone = route53.HostedZone.fromLookup(
                 this,
                 "HostedZone",
                 {
-                    domainName: props.domainName,
+                    domainName: config.domainName,
                 }
             );
 
             new route53.ARecord(this, "WebsiteAliasRecord", {
                 zone: hostedZone,
-                recordName: props.domainName,
+                recordName: config.domainName,
                 target: route53.RecordTarget.fromAlias(
                     new targets.CloudFrontTarget(this.website.distribution)
                 ),
@@ -467,13 +479,13 @@ export class InvoiceServiceStack extends cdk.Stack {
         }
 
         // Add monitoring if alertEmail is provided
-        if (props.alertEmail) {
+        if (config.alertEmail) {
             new Monitoring(this, "Monitoring", {
                 api: api,
                 userPool: this.auth.userPool,
-                alertEmail: props.alertEmail,
+                alertEmail: config.alertEmail,
                 environment: environment,
-                thresholds: props.monitoringThresholds,
+                thresholds: config.monitoringThresholds
             });
         }
 

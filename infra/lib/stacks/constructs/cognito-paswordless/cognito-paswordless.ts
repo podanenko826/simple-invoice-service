@@ -23,6 +23,10 @@ export class Passwordless extends Construct {
         scope: Construct,
         id: string,
         props: {
+            /** Project name prefix for resource naming */
+            projectNamePrefix: string;
+            /** Environment name (dev/prod) */
+            environment: string;
             /** If you don't provide an existing User Pool, one will be created for you. Pass any properties you want for it, these will be merged with properties from this solution */
             userPoolProps?: Partial<cdk.aws_cognito.UserPoolProps>;
             /**
@@ -74,8 +78,8 @@ export class Passwordless extends Construct {
             this,
             `SendGridApiKeyParameter${id}`,
             {
-                parameterName: `/${id}/sendgrid-api-key`,
-                description: "SendGrid API key for magic link emails - UPDATE THIS VALUE",
+                parameterName: `/${props.projectNamePrefix}/sendgrid-api-key`,
+                description: `[${props.environment}] SendGrid API key for magic link emails - UPDATE THIS VALUE`,
                 stringValue: "PLACEHOLDER_UPDATE_IN_AWS_CONSOLE",
                 tier: cdk.aws_ssm.ParameterTier.STANDARD,
             }
@@ -97,13 +101,14 @@ export class Passwordless extends Construct {
                 ],
             }),
         });
-        this.kmsKey = key.addAlias(`${id}-${cdk.Stack.of(scope).stackName}`);
+        this.kmsKey = key.addAlias(`${props.projectNamePrefix}-magic-link-key`);
 
         // Create DynamoDB table for storing magic link secrets
         this.secretsTable = new cdk.aws_dynamodb.Table(
             scope,
             `SecretsTable${id}`,
             {
+                tableName: `${props.projectNamePrefix}-auth-secrets`,
                 billingMode: cdk.aws_dynamodb.BillingMode.PAY_PER_REQUEST,
                 ...props.magicLink.secretsTableProps,
                 partitionKey: {
@@ -121,6 +126,7 @@ export class Passwordless extends Construct {
                 this,
                 `PreSignup${id}`,
                 {
+                    functionName: `${props.projectNamePrefix}-pre-signup`,
                     entry: join(__dirname, "custom-auth", "pre-signup.ts"),
                     runtime: cdk.aws_lambda.Runtime.NODEJS_22_X,
                     architecture: cdk.aws_lambda.Architecture.ARM_64,
@@ -128,6 +134,7 @@ export class Passwordless extends Construct {
                         format: cdk.aws_lambda_nodejs.OutputFormat.ESM,
                     },
                     ...props.functionProps?.preSignUp,
+                    description: `[${props.environment}] Auto-confirm users on signup`,
                     environment: {
                         LOG_LEVEL: props.logLevel ?? "INFO",
                         ...props.functionProps?.preSignUp?.environment,
@@ -162,6 +169,7 @@ export class Passwordless extends Construct {
             this,
             `CreateAuthChallenge${id}`,
             {
+                functionName: `${props.projectNamePrefix}-create-auth-challenge`,
                 entry: join(
                     __dirname,
                     "custom-auth",
@@ -174,6 +182,7 @@ export class Passwordless extends Construct {
                 },
                 timeout: cdk.Duration.seconds(5),
                 ...props.functionProps?.createAuthChallenge,
+                description: `[${props.environment}] Create authentication challenge (magic link)`,
                 environment: {
                     ...createAuthChallengeEnvironment,
                     ...props.functionProps?.createAuthChallenge?.environment,
@@ -248,6 +257,7 @@ export class Passwordless extends Construct {
                 this,
                 `VerifyAuthChallengeResponse${id}`,
                 {
+                    functionName: `${props.projectNamePrefix}-verify-auth-challenge`,
                     entry: join(
                         __dirname,
                         "custom-auth",
@@ -260,6 +270,7 @@ export class Passwordless extends Construct {
                     },
                     timeout: cdk.Duration.seconds(5),
                     ...props.functionProps?.verifyAuthChallengeResponse,
+                    description: `[${props.environment}] Verify authentication challenge response`,
                     environment: {
                         ...verifyAuthChallengeResponseEnvironment,
                         ...props.functionProps?.verifyAuthChallengeResponse
@@ -307,6 +318,7 @@ export class Passwordless extends Construct {
                 this,
                 `DefineAuthChallenge${id}`,
                 {
+                    functionName: `${props.projectNamePrefix}-define-auth-challenge`,
                     entry: join(
                         __dirname,
                         "custom-auth",
@@ -319,6 +331,7 @@ export class Passwordless extends Construct {
                     },
                     timeout: cdk.Duration.seconds(5),
                     ...props.functionProps?.defineAuthChallenge,
+                    description: `[${props.environment}] Define authentication challenge flow`,
                     environment: {
                         LOG_LEVEL: props.logLevel ?? "INFO",
                         ...props.functionProps?.defineAuthChallenge
@@ -333,6 +346,7 @@ export class Passwordless extends Construct {
                     this,
                     `PreToken${id}`,
                     {
+                        functionName: `${props.projectNamePrefix}-pre-token-generation`,
                         entry: join(__dirname, "custom-auth", "pre-token.ts"),
                         runtime: cdk.aws_lambda.Runtime.NODEJS_22_X,
                         architecture: cdk.aws_lambda.Architecture.ARM_64,
@@ -340,6 +354,7 @@ export class Passwordless extends Construct {
                             format: cdk.aws_lambda_nodejs.OutputFormat.ESM,
                         },
                         ...props.functionProps?.preTokenGeneration,
+                        description: `[${props.environment}] Pre-token generation trigger`,
                         environment: {
                             LOG_LEVEL: props.logLevel ?? "INFO",
                             CLIENT_METADATA_PERSISTED_KEYS: [
@@ -354,6 +369,7 @@ export class Passwordless extends Construct {
         }
 
         const mergedProps: cdk.aws_cognito.UserPoolProps = {
+            userPoolName: `${props.projectNamePrefix}-users`,
             passwordPolicy: {
                 minLength: 8,
                 requireDigits: true,

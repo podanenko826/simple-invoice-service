@@ -14,6 +14,8 @@ export interface PublicWebsiteProps {
     readonly apiUrl: string;
     readonly certificateArn?: string;
     readonly domainName?: string;
+    readonly projectNamePrefix: string;
+    readonly environment: string;
 }
 
 // ES module equivalent of __dirname
@@ -28,10 +30,11 @@ export class PublicWebsite extends Construct {
         super(scope, id);
 
         // Define paths relative to this construct file
-        const appPath = path.resolve(__dirname, "../../../../frontend");
+        const appPath = path.resolve(__dirname, "../../../../../frontend");
 
         // Create S3 bucket for website hosting
         this.websiteBucket = new s3.Bucket(this, "WebsiteBucket", {
+            bucketName: `${props.projectNamePrefix}-website-${cdk.Stack.of(this).account}`,
             removalPolicy: cdk.RemovalPolicy.DESTROY,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             autoDeleteObjects: true,

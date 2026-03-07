@@ -38,17 +38,20 @@ const Index = () => {
     const [invoiceCount, setInvoiceCount] = useState<number | null>(null);
     const [isLoadingCount, setIsLoadingCount] = useState(true);
     const { isAuthenticated } = useAuth();
+    
+    // Starting offset to show initial traction
+    const INVOICE_COUNT_OFFSET = 55;
 
     useEffect(() => {
         // Load global invoice count for all users (public endpoint)
         statsApi.getGlobal()
             .then((stats) => {
-                setInvoiceCount(stats.totalInvoices);
+                setInvoiceCount(stats.totalInvoices + INVOICE_COUNT_OFFSET);
                 setIsLoadingCount(false);
             })
             .catch((err) => {
                 console.error("Failed to load global stats:", err);
-                setInvoiceCount(null);
+                setInvoiceCount(INVOICE_COUNT_OFFSET); // Show offset even if API fails
                 setIsLoadingCount(false);
             });
     }, []);

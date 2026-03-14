@@ -143,7 +143,10 @@ export function LogoUpload({ value, onChange, className }: LogoUploadProps) {
                                 Upload company logo
                             </p>
                             <p className="text-xs text-muted-foreground">
-                                Drag & drop or click to select
+                                <span className="hidden sm:inline">
+                                    Drag & drop or click
+                                </span>
+                                <span className="sm:hidden">Tap</span> to select
                             </p>
                             <p className="text-xs text-muted-foreground mt-1">
                                 PNG, JPG, SVG up to 2MB

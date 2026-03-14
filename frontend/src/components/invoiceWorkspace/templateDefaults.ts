@@ -16,6 +16,7 @@ export interface InvoiceTemplate {
     routingNumber: string;
     swiftCode: string;
     registrationNumber: string;
+    companyLogo?: string; // Base64 encoded image data
 
     notes: string;
     currency: string;
@@ -38,6 +39,7 @@ export const defaultTemplate: InvoiceTemplate = {
     routingNumber: "",
     swiftCode: "",
     registrationNumber: "",
+    companyLogo: undefined,
 
     notes: "",
     currency: DEFAULT_CURRENCY,

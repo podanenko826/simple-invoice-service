@@ -82,41 +82,148 @@ export const templateApi = {
             if (error instanceof ApiError && error.status === 404) {
                 return null;
             }
-            throw error;
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                const stored = localStorage.getItem("invoice-template");
+                return stored ? JSON.parse(stored) : null;
+            } catch (localError) {
+                console.error("Failed to load from localStorage:", localError);
+                return null;
+            }
         }
     },
 
     async save(template: InvoiceTemplate): Promise<void> {
-        await fetchWithAuth("/templates", {
-            method: "POST",
-            body: JSON.stringify(template),
-        });
+        try {
+            await fetchWithAuth("/templates", {
+                method: "POST",
+                body: JSON.stringify(template),
+            });
+        } catch (error) {
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                localStorage.setItem(
+                    "invoice-template",
+                    JSON.stringify(template),
+                );
+                console.log("Template saved to localStorage:", template);
+            } catch (localError) {
+                console.error("Failed to save to localStorage:", localError);
+                throw new Error("Failed to save template");
+            }
+        }
     },
 };
 
 // Invoice API
 export const invoiceApi = {
     async list(): Promise<GeneratedInvoice[]> {
-        const response = await fetchWithAuth("/invoices");
-        return await response.json();
+        try {
+            const response = await fetchWithAuth("/invoices");
+            return await response.json();
+        } catch (error) {
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                const stored = localStorage.getItem("invoice-history");
+                return stored ? JSON.parse(stored) : [];
+            } catch (localError) {
+                console.error("Failed to load from localStorage:", localError);
+                return [];
+            }
+        }
     },
 
     async get(invoiceId: string): Promise<GeneratedInvoice> {
-        const response = await fetchWithAuth(`/invoices/${invoiceId}`);
-        return await response.json();
+        try {
+            const response = await fetchWithAuth(`/invoices/${invoiceId}`);
+            return await response.json();
+        } catch (error) {
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                const stored = localStorage.getItem("invoice-history");
+                const invoices: GeneratedInvoice[] = stored
+                    ? JSON.parse(stored)
+                    : [];
+                const invoice = invoices.find((inv) => inv.id === invoiceId);
+                if (!invoice) {
+                    throw new Error("Invoice not found");
+                }
+                return invoice;
+            } catch (localError) {
+                console.error("Failed to load from localStorage:", localError);
+                throw new Error("Failed to get invoice");
+            }
+        }
     },
 
     async save(invoice: GeneratedInvoice): Promise<void> {
-        await fetchWithAuth("/invoices", {
-            method: "POST",
-            body: JSON.stringify(invoice),
-        });
+        try {
+            await fetchWithAuth("/invoices", {
+                method: "POST",
+                body: JSON.stringify(invoice),
+            });
+        } catch (error) {
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                const stored = localStorage.getItem("invoice-history");
+                const invoices: GeneratedInvoice[] = stored
+                    ? JSON.parse(stored)
+                    : [];
+
+                // Remove existing invoice with same ID if it exists
+                const filteredInvoices = invoices.filter(
+                    (inv) => inv.id !== invoice.id,
+                );
+
+                // Add new invoice
+                filteredInvoices.unshift(invoice);
+
+                localStorage.setItem(
+                    "invoice-history",
+                    JSON.stringify(filteredInvoices),
+                );
+                console.log("Invoice saved to localStorage:", invoice);
+            } catch (localError) {
+                console.error("Failed to save to localStorage:", localError);
+                throw new Error("Failed to save invoice");
+            }
+        }
     },
 
     async delete(invoiceId: string): Promise<void> {
-        await fetchWithAuth(`/invoices/${invoiceId}`, {
-            method: "DELETE",
-        });
+        try {
+            await fetchWithAuth(`/invoices/${invoiceId}`, {
+                method: "DELETE",
+            });
+        } catch (error) {
+            // Fallback to localStorage for local development
+            console.warn("API not available, using localStorage fallback");
+            try {
+                const stored = localStorage.getItem("invoice-history");
+                const invoices: GeneratedInvoice[] = stored
+                    ? JSON.parse(stored)
+                    : [];
+                const filteredInvoices = invoices.filter(
+                    (inv) => inv.id !== invoiceId,
+                );
+                localStorage.setItem(
+                    "invoice-history",
+                    JSON.stringify(filteredInvoices),
+                );
+                console.log("Invoice deleted from localStorage:", invoiceId);
+            } catch (localError) {
+                console.error(
+                    "Failed to delete from localStorage:",
+                    localError,
+                );
+                throw new Error("Failed to delete invoice");
+            }
+        }
     },
 };
 

@@ -36,6 +36,15 @@ const InvoiceWorkSpace = () => {
                     loadInvoices(),
                 ]);
 
+                console.log(
+                    "📥 InvoiceWorkspace: Loaded template:",
+                    loadedTemplate,
+                );
+                console.log(
+                    "🖼️ InvoiceWorkspace: Logo in loaded template:",
+                    !!loadedTemplate?.companyLogo,
+                );
+
                 if (loadedTemplate) {
                     setTemplate(loadedTemplate);
                     setTemplateSaved(true);
@@ -56,13 +65,18 @@ const InvoiceWorkSpace = () => {
     }, []);
 
     const handleSaveTemplate = async (t: InvoiceTemplate) => {
+        console.log("🏠 InvoiceWorkspace: Saving template:", t);
+        console.log("🖼️ InvoiceWorkspace: Logo present:", !!t.companyLogo);
+
         try {
             await saveTemplate(t);
             setTemplate(t);
             setTemplateSaved(true);
             toast.success("Template saved successfully");
+
+            console.log("✅ InvoiceWorkspace: Template saved successfully");
         } catch (error) {
-            console.error("Error saving template:", error);
+            console.error("❌ InvoiceWorkspace: Error saving template:", error);
             toast.error("Failed to save template");
         }
     };

@@ -27,6 +27,7 @@ export interface InvoiceServiceStackProps extends cdk.StackProps {
     readonly domainName?: string;
     readonly alertEmail?: string;
     readonly monitoringThresholds?: MonitoringThresholds;
+    readonly environment: string;
 }
 
 export class InvoiceServiceStack extends cdk.Stack {
@@ -40,8 +41,8 @@ export class InvoiceServiceStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props: InvoiceServiceStackProps) {
         super(scope, id, props);
 
-        const projectNamePrfix = "sis";
-        const environment = "dev";
+        const projectNamePrefix = "oneThing";
+        const environment = props.environment;
         const removalPolicy =
             environment === "dev"
                 ? cdk.RemovalPolicy.DESTROY
@@ -50,7 +51,7 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // S3 Bucket for storing invoice PDFs
         this.invoiceBucket = new s3.Bucket(this, "InvoiceBucket", {
-            bucketName: `${projectNamePrfix}-invoice-pdfs-${account}`,
+            bucketName: `${projectNamePrefix}-invoice-pdfs-${environment}-${account}`,
             encryption: s3.BucketEncryption.S3_MANAGED,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             versioned: true,
@@ -60,7 +61,7 @@ export class InvoiceServiceStack extends cdk.Stack {
 
         // S3 Bucket for storing user feedback (cheaper than DynamoDB)
         this.feedbackBucket = new s3.Bucket(this, "FeedbackBucket", {
-            bucketName: `${projectNamePrfix}-feedback-${account}`,
+            bucketName: `${projectNamePrefix}-feedback-${environment}-${account}`,
             encryption: s3.BucketEncryption.S3_MANAGED,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
             versioned: false,
@@ -82,7 +83,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         // DynamoDB Table for all invoice data (templates + invoices)
         // Single table design with composite sort key
         this.invoiceDataTable = new dynamodb.Table(this, "InvoiceDataTable", {
-            tableName: `${projectNamePrfix}-invoice-data-${environment}`,
+            tableName: `${projectNamePrefix}-invoice-data-${environment}`,
             partitionKey: {
                 name: "userId",
                 type: dynamodb.AttributeType.STRING,
@@ -135,7 +136,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         if (props.alertEmail) {
             feedbackTopic = new sns.Topic(this, "FeedbackTopic", {
                 displayName: "OneThing Invoice Feedback Notifications",
-                topicName: `${projectNamePrfix}-feedback-${environment}`,
+                topicName: `${projectNamePrefix}-feedback-${environment}`,
             });
 
             // Subscribe email to the topic
@@ -317,7 +318,7 @@ export class InvoiceServiceStack extends cdk.Stack {
         }
 
         const api = new apigateway.RestApi(this, "InvoiceApi", {
-            restApiName: `${projectNamePrfix}-invoice-api-${environment}`,
+            restApiName: `${projectNamePrefix}-invoice-api-${environment}`,
             description: "API for invoice management",
             deployOptions: {
                 stageName: "prod",
@@ -481,32 +482,32 @@ export class InvoiceServiceStack extends cdk.Stack {
         new cdk.CfnOutput(this, "InvoiceBucketName", {
             value: this.invoiceBucket.bucketName,
             description: "S3 Bucket for invoice PDFs",
-            exportName: `${projectNamePrfix}-InvoiceBucketName-${environment}`,
+            exportName: `${projectNamePrefix}-InvoiceBucketName-${environment}`,
         });
 
         new cdk.CfnOutput(this, "InvoiceDataTableName", {
             value: this.invoiceDataTable.tableName,
             description:
                 "DynamoDB table for invoice data (templates + invoices)",
-            exportName: `${projectNamePrfix}-InvoiceDataTableName-${environment}`,
+            exportName: `${projectNamePrefix}-InvoiceDataTableName-${environment}`,
         });
 
         new cdk.CfnOutput(this, "ApiUrl", {
             value: api.url,
             description: "Invoice API Gateway URL",
-            exportName: `${projectNamePrfix}-ApiUrl-${environment}`,
+            exportName: `${projectNamePrefix}-ApiUrl-${environment}`,
         });
 
         new cdk.CfnOutput(this, "UserPoolId", {
             value: this.auth.userPool.userPoolId,
             description: "Cognito User Pool ID",
-            exportName: `${projectNamePrfix}-UserPoolId-${environment}`,
+            exportName: `${projectNamePrefix}-UserPoolId-${environment}`,
         });
 
         new cdk.CfnOutput(this, "UserPoolClientId", {
             value: this.auth.userPoolClient.userPoolClientId,
             description: "Cognito User Pool Client ID",
-            exportName: `${projectNamePrfix}-UserPoolClientId-${environment}`,
+            exportName: `${projectNamePrefix}-UserPoolClientId-${environment}`,
         });
     }
 }

@@ -81,8 +81,21 @@ const InvoicePreview = ({
                     fontVariantNumeric: "tabular-nums",
                 }}
             >
+                {/* Company Logo */}
+                {template.companyLogo && (
+                    <div className="absolute top-[4%] left-[6%] w-[15%] h-[8%] flex items-center justify-center">
+                        <img
+                            src={template.companyLogo}
+                            alt="Company logo"
+                            className="max-w-full max-h-full object-contain"
+                        />
+                    </div>
+                )}
+
                 {/* Header */}
-                <div className="px-[6%] pt-[4%] pb-[2%] text-center">
+                <div
+                    className={`px-[6%] pb-[2%] text-center ${template.companyLogo ? "pt-[13%]" : "pt-[4%]"}`}
+                >
                     <h2
                         className="font-semibold uppercase tracking-[0.2em]"
                         style={{ fontSize: "1.6em", color: C.primary }}

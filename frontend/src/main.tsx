@@ -3,6 +3,7 @@ import "./index.css";
 import App from "./App.tsx";
 import { Passwordless } from "./lib/auth/index.js";
 import { loadRuntimeConfig } from "./config/runtime-config";
+import "./lib/debug-storage"; // Import debug utilities
 
 // Load runtime config and configure auth before rendering
 loadRuntimeConfig()

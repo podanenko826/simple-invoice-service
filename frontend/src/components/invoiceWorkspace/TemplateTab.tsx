@@ -31,6 +31,7 @@ import {
 import InvoicePreview from "./InvoicePreview";
 import type { InvoiceTemplate } from "./templateDefaults";
 import { CURRENCIES } from "@/config/currencies";
+import { LogoUpload } from "@/components/ui/logo-upload";
 
 export type { InvoiceTemplate };
 
@@ -51,12 +52,21 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
     const [step, setStep] = useState(0);
     const [saved, setSaved] = useState(false);
 
-    const update = (field: keyof InvoiceTemplate, value: string) => {
+    const update = (
+        field: keyof InvoiceTemplate,
+        value: string | undefined,
+    ) => {
         setForm((prev) => ({ ...prev, [field]: value }));
         setSaved(false);
     };
 
     const handleSave = () => {
+        console.log("💾 Saving template:", form);
+        console.log("🖼️ Logo in template:", !!form.companyLogo);
+        if (form.companyLogo) {
+            console.log("🖼️ Logo size:", form.companyLogo.length, "characters");
+        }
+
         onSave(form);
         setSaved(true);
         setTimeout(() => setSaved(false), 2000);
@@ -213,6 +223,15 @@ const TemplateTab = ({ template, onSave }: TemplateTabProps) => {
                                             }
                                         />
                                     </div>
+                                </div>
+                                <div className="space-y-2.5">
+                                    <Label>Company Logo</Label>
+                                    <LogoUpload
+                                        value={form.companyLogo}
+                                        onChange={(logo) =>
+                                            update("companyLogo", logo)
+                                        }
+                                    />
                                 </div>
                             </CardContent>
                             <div className="border-t px-6 py-4 flex items-center justify-between flex-shrink-0 bg-muted/30">

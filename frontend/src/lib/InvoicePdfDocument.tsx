@@ -1,4 +1,11 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import {
+    Document,
+    Page,
+    Text,
+    View,
+    StyleSheet,
+    Image,
+} from "@react-pdf/renderer";
 import {
     colors,
     baseFontSize,
@@ -229,6 +236,21 @@ const styles = StyleSheet.create({
         fontSize: 8,
         color: colors.secondary,
     },
+    logoContainer: {
+        position: "absolute",
+        top: spacing.pagePaddingPt,
+        left: spacing.pagePaddingPt,
+        width: 80,
+        height: 60,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    logo: {
+        maxWidth: 80,
+        maxHeight: 60,
+        objectFit: "contain",
+    },
 });
 
 interface LineItem {
@@ -246,6 +268,7 @@ interface InvoiceTemplate {
     companyEmail: string;
     companyPhone?: string;
     taxId?: string;
+    companyLogo?: string;
     clientName: string;
     clientEmail: string;
     clientAddress: string;
@@ -314,6 +337,13 @@ const InvoicePdfDocument = ({
     return (
         <Document>
             <Page size="A4" style={styles.page}>
+                {/* Company Logo */}
+                {template.companyLogo && (
+                    <View style={styles.logoContainer}>
+                        <Image src={template.companyLogo} style={styles.logo} />
+                    </View>
+                )}
+
                 {/* Header */}
                 <View style={styles.header}>
                     <Text style={styles.invoiceTitle}>INVOICE</Text>

@@ -9,7 +9,9 @@
         "synth": "cdk synth",
         "diff": "cdk diff",
         "destroy": "cdk destroy",
-        "deploy:dev": "AWS_PROFILE=ske-dev cdk deploy --all",
+        "deploy:dev": "ENVIRONMENT=dev cdk deploy --all",
+        "deploy:staging": "ENVIRONMENT=staging cdk deploy --all",
+        "deploy:prod": "ENVIRONMENT=prod cdk deploy --all",
         "bootstrap": "cdk bootstrap",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix"

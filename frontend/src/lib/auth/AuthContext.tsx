@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                         : (refreshedTokens as TokensFromSignIn),
                 );
             },
-            isRefreshingCb: (isRefreshing) => {
+            isRefreshingCb: (_isRefreshing) => {
             },
         });
 

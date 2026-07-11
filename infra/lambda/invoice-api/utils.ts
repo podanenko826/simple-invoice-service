@@ -1,4 +1,4 @@
-import { APIResponse } from "./types";
+import { APIResponse } from "./types.js";
 
 export function createResponse(
     statusCode: number,

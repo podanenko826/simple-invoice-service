@@ -35,17 +35,11 @@ const configUsEast1 = {
     hostedZoneName: config.hostedZoneName,
 };
 
-// Create certificate stack in us-east-1 (required for CloudFront)
 const certStack = new CertificatesStack(app, `${config.projectNamePrefix}-CertificatesStack`, {
     ...configUsEast1,
     description: config.certificateStackDescription
 });
 
-// Add tags to certificate stack
-cdk.Tags.of(certStack).add("Environment", environment);
-cdk.Tags.of(certStack).add("StackName", `${config.projectNamePrefix}-CertificatesStack`);
-
-// Create main stack in eu-west-1 (includes monitoring construct)
 const mainStack = new InvoiceServiceStack(app, `${config.projectNamePrefix}-InvoiceServiceStack`, {
     ...configDefault,
     crossRegionReferences: true,
@@ -53,11 +47,10 @@ const mainStack = new InvoiceServiceStack(app, `${config.projectNamePrefix}-Invo
     description: config.mainStackDescription
 });
 
-// Add tags to main stack
+// Add tags to certificate stack
+cdk.Tags.of(certStack).add("Environment", environment);
+cdk.Tags.of(certStack).add("StackName", `${config.projectNamePrefix}-CertificatesStack`);
 cdk.Tags.of(mainStack).add("Environment", environment);
 cdk.Tags.of(mainStack).add("StackName", `${config.projectNamePrefix}-InvoiceServiceStack`);
-
-// Ensure certificate is created before main stack
-mainStack.addDependency(certStack);
 
 app.synth();

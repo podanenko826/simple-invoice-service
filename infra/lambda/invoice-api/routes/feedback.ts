@@ -1,11 +1,8 @@
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
-import { createResponse, getUserIdFromEvent } from "./utils";
-
-const s3Client = new S3Client({});
-const snsClient = new SNSClient({});
-const FEEDBACK_BUCKET = process.env.FEEDBACK_BUCKET!;
-const FEEDBACK_TOPIC_ARN = process.env.FEEDBACK_TOPIC_ARN;
+import { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { PublishCommand } from "@aws-sdk/client-sns";
+import { s3Client, snsClient, FEEDBACK_BUCKET, FEEDBACK_TOPIC_ARN } from "../handler.js";
+import { createResponse, getUserIdFromEvent } from "../utils.js";
 
 interface FeedbackRequest {
     message: string;
@@ -15,14 +12,12 @@ interface FeedbackRequest {
 
 /**
  * POST /feedback
- * Save user feedback to S3
+ * Save user feedback to S3 and notify via SNS
  */
-export async function handler(event: any) {
-    console.log("Event:", JSON.stringify(event, null, 2));
-
+export async function saveFeedback(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
     try {
         const userId = getUserIdFromEvent(event);
-        const feedback: FeedbackRequest = JSON.parse(event.body);
+        const feedback: FeedbackRequest = JSON.parse(event.body!);
 
         if (!feedback.message || !feedback.message.trim()) {
             return createResponse(400, {
@@ -33,7 +28,6 @@ export async function handler(event: any) {
         const timestamp = new Date().toISOString();
         const feedbackId = `${timestamp.replace(/[:.]/g, "-")}-${userId.substring(0, 8)}`;
 
-        // Create feedback object with metadata
         const feedbackData = {
             feedbackId,
             userId,
@@ -45,21 +39,21 @@ export async function handler(event: any) {
             sourceIp: event.requestContext?.identity?.sourceIp,
         };
 
-        // Save to S3 as JSON
+        // Save to S3
         const key = `feedback/${timestamp.split("T")[0]}/${feedbackId}.json`;
 
-        const command = new PutObjectCommand({
-            Bucket: FEEDBACK_BUCKET,
-            Key: key,
-            Body: JSON.stringify(feedbackData, null, 2),
-            ContentType: "application/json",
-            Metadata: {
-                userId,
-                timestamp,
-            },
-        });
-
-        await s3Client.send(command);
+        await s3Client.send(
+            new PutObjectCommand({
+                Bucket: FEEDBACK_BUCKET,
+                Key: key,
+                Body: JSON.stringify(feedbackData, null, 2),
+                ContentType: "application/json",
+                Metadata: {
+                    userId,
+                    timestamp,
+                },
+            })
+        );
 
         console.log(`Feedback saved: ${key}`);
 
@@ -84,13 +78,13 @@ ${feedback.page ? `📄 Page: ${feedback.page}` : ""}
 📦 S3 Location: s3://${FEEDBACK_BUCKET}/${key}
                 `.trim();
 
-                const snsCommand = new PublishCommand({
-                    TopicArn: FEEDBACK_TOPIC_ARN,
-                    Subject: emailSubject,
-                    Message: emailBody,
-                });
-
-                await snsClient.send(snsCommand);
+                await snsClient.send(
+                    new PublishCommand({
+                        TopicArn: FEEDBACK_TOPIC_ARN,
+                        Subject: emailSubject,
+                        Message: emailBody,
+                    })
+                );
                 console.log("SNS notification sent successfully");
             } catch (snsError) {
                 console.error("Failed to send SNS notification:", snsError);
@@ -103,7 +97,7 @@ ${feedback.page ? `📄 Page: ${feedback.page}` : ""}
             feedbackId,
         });
     } catch (error: any) {
-        console.error("Error:", error);
+        console.error("Error saving feedback:", error);
         if (error.message.includes("Unauthorized")) {
             return createResponse(401, { error: error.message });
         }

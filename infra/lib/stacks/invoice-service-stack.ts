@@ -119,11 +119,10 @@ export class InvoiceServiceStack extends cdk.Stack {
             allowedOrigins.push(`https://${config.domainName}`);
         }
 
-        // @todo check how we put this API KEY
         this.auth = new Passwordless(this, "Auth", {
             projectNamePrefix: projectNamePrfix,
             environment: environment,
-            allowedOrigins: allowedOrigins, // Vite dev server + production domain
+            allowedOrigins: allowedOrigins,
             magicLink: {
                 emailFromAddress: "noreply@em5604.makeinvoices.app",
                 autoConfirmUsers: true,
@@ -139,7 +138,6 @@ export class InvoiceServiceStack extends cdk.Stack {
                 topicName: `${projectNamePrfix}-feedback`,
             });
 
-            // Subscribe email to the topic
             feedbackTopic.addSubscription(
                 new subscriptions.EmailSubscription(config.alertEmail)
             );
@@ -150,177 +148,43 @@ export class InvoiceServiceStack extends cdk.Stack {
             });
         }
 
-        // Common Lambda configuration
-        const lambdaEnvironment = {
-            TABLE_NAME: this.invoiceDataTable.tableName,
-            BUCKET_NAME: this.invoiceBucket.bucketName,
-            FEEDBACK_BUCKET: this.feedbackBucket.bucketName,
-            FEEDBACK_TOPIC_ARN: feedbackTopic?.topicArn || "",
-        };
-
-        const lambdaProps = {
+        // Single consolidated Lambda function for the entire Invoice API
+        const apiFunction = new NodejsFunction(this, "InvoiceApiFunction", {
+            functionName: `${projectNamePrfix}-api`,
+            entry: path.join(
+                __dirname,
+                "../../lambda/invoice-api/handler.ts"
+            ),
+            handler: "handler",
             runtime: lambda.Runtime.NODEJS_20_X,
+            architecture: lambda.Architecture.ARM_64,
             timeout: cdk.Duration.seconds(30),
-            environment: lambdaEnvironment,
+            memorySize: 256,
+            description: `[${environment}] Invoice API (consolidated router)`,
+            environment: {
+                TABLE_NAME: this.invoiceDataTable.tableName,
+                BUCKET_NAME: this.invoiceBucket.bucketName,
+                FEEDBACK_BUCKET: this.feedbackBucket.bucketName,
+                FEEDBACK_TOPIC_ARN: feedbackTopic?.topicArn || "",
+            },
             bundling: {
                 minify: true,
                 sourceMap: true,
-                externalModules: ["@aws-sdk/*"], // Use AWS SDK from Lambda runtime
+                format: cdk.aws_lambda_nodejs.OutputFormat.ESM,
+                externalModules: ["@aws-sdk/*"],
             },
-        };
-
-        // Template Lambda Functions (separate GET and POST for caching)
-        const getTemplateFunction = new NodejsFunction(
-            this,
-            "GetTemplateFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-get-template`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/get-template.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Get user's invoice template`,
-            }
-        );
-
-        const saveTemplateFunction = new NodejsFunction(
-            this,
-            "SaveTemplateFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-save-template`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/save-template.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Save user's invoice template`,
-            }
-        );
-
-        // Invoice Lambda Functions (separate for caching)
-        const listInvoicesFunction = new NodejsFunction(
-            this,
-            "ListInvoicesFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-list-invoices`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/list-invoices.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] List all invoices for user`,
-            }
-        );
-
-        const getInvoiceFunction = new NodejsFunction(
-            this,
-            "GetInvoiceFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-get-invoice`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/get-invoice.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Get specific invoice`,
-            }
-        );
-
-        const saveInvoiceFunction = new NodejsFunction(
-            this,
-            "SaveInvoiceFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-save-invoice`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/save-invoice.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Save new invoice`,
-            }
-        );
-
-        const deleteInvoiceFunction = new NodejsFunction(
-            this,
-            "DeleteInvoiceFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-delete-invoice`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/delete-invoice.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Delete invoice`,
-            }
-        );
-
-        const getUsageFunction = new NodejsFunction(this, "GetUsageFunction", {
-            ...lambdaProps,
-            functionName: `${projectNamePrfix}-get-usage`,
-            entry: path.join(__dirname, "../../lambda/invoice-api/get-usage.ts"),
-            handler: "handler",
-            description: `[${environment}] Get user usage statistics`,
         });
 
-        const saveFeedbackFunction = new NodejsFunction(
-            this,
-            "SaveFeedbackFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-save-feedback`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/save-feedback.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Save user feedback to S3`,
-            }
-        );
+        // Grant all necessary permissions to the single function
+        this.invoiceDataTable.grantReadWriteData(apiFunction);
+        this.invoiceBucket.grantReadWrite(apiFunction);
+        this.feedbackBucket.grantWrite(apiFunction);
 
-        const getGlobalStatsFunction = new NodejsFunction(
-            this,
-            "GetGlobalStatsFunction",
-            {
-                ...lambdaProps,
-                functionName: `${projectNamePrfix}-get-global-stats`,
-                entry: path.join(
-                    __dirname,
-                    "../../lambda/invoice-api/get-global-stats.ts"
-                ),
-                handler: "handler",
-                description: `[${environment}] Get global statistics (public endpoint)`,
-            }
-        );
-
-        // Grant DynamoDB permissions
-        this.invoiceDataTable.grantReadData(getTemplateFunction);
-        this.invoiceDataTable.grantReadData(listInvoicesFunction);
-        this.invoiceDataTable.grantReadData(getInvoiceFunction);
-        this.invoiceDataTable.grantReadData(getUsageFunction);
-        this.invoiceDataTable.grantReadData(getGlobalStatsFunction);
-        this.invoiceDataTable.grantWriteData(saveTemplateFunction);
-        this.invoiceDataTable.grantWriteData(saveInvoiceFunction);
-        this.invoiceDataTable.grantWriteData(deleteInvoiceFunction);
-
-        // Grant S3 permissions
-        this.invoiceBucket.grantReadWrite(saveInvoiceFunction);
-        this.invoiceBucket.grantRead(getInvoiceFunction);
-        this.invoiceBucket.grantRead(listInvoicesFunction);
-        this.feedbackBucket.grantWrite(saveFeedbackFunction);
-
-        // Grant SNS permissions
         if (feedbackTopic) {
-            feedbackTopic.grantPublish(saveFeedbackFunction);
+            feedbackTopic.grantPublish(apiFunction);
         }
 
-        // Create API Gateway (without expensive cache cluster)
+        // Create API Gateway
         const apiCorsOrigins = ["http://localhost:5173"];
         if (config.domainName) {
             apiCorsOrigins.push(`https://${config.domainName}`);
@@ -348,7 +212,6 @@ export class InvoiceServiceStack extends cdk.Stack {
             },
         });
 
-        // Store API reference for monitoring
         this.api = api;
 
         // Create Cognito authorizer
@@ -361,92 +224,39 @@ export class InvoiceServiceStack extends cdk.Stack {
             }
         );
 
-        // Common method options
         const authMethodOptions = {
             authorizer,
             authorizationType: apigateway.AuthorizationType.COGNITO,
         };
 
+        // Single Lambda integration for all routes
+        const apiIntegration = new apigateway.LambdaIntegration(apiFunction);
+
         // Template endpoints
         const templates = api.root.addResource("templates");
-
-        // GET /templates
-        templates.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(getTemplateFunction),
-            authMethodOptions
-        );
-
-        // POST /templates
-        templates.addMethod(
-            "POST",
-            new apigateway.LambdaIntegration(saveTemplateFunction),
-            authMethodOptions
-        );
+        templates.addMethod("GET", apiIntegration, authMethodOptions);
+        templates.addMethod("POST", apiIntegration, authMethodOptions);
 
         // Invoice endpoints
         const invoices = api.root.addResource("invoices");
+        invoices.addMethod("GET", apiIntegration, authMethodOptions);
+        invoices.addMethod("POST", apiIntegration, authMethodOptions);
 
-        // GET /invoices
-        invoices.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(listInvoicesFunction),
-            authMethodOptions
-        );
-
-        // POST /invoices
-        invoices.addMethod(
-            "POST",
-            new apigateway.LambdaIntegration(saveInvoiceFunction),
-            authMethodOptions
-        );
-
-        // Single invoice endpoint
         const invoice = invoices.addResource("{invoiceId}");
-
-        // GET /invoices/{id}
-        invoice.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(getInvoiceFunction),
-            authMethodOptions
-        );
-
-        // DELETE /invoices/{id}
-        invoice.addMethod(
-            "DELETE",
-            new apigateway.LambdaIntegration(deleteInvoiceFunction),
-            authMethodOptions
-        );
+        invoice.addMethod("GET", apiIntegration, authMethodOptions);
+        invoice.addMethod("DELETE", apiIntegration, authMethodOptions);
 
         // Usage endpoint
         const usage = api.root.addResource("usage");
-
-        // GET /usage
-        usage.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(getUsageFunction),
-            authMethodOptions
-        );
+        usage.addMethod("GET", apiIntegration, authMethodOptions);
 
         // Feedback endpoint
         const feedback = api.root.addResource("feedback");
-
-        // POST /feedback
-        feedback.addMethod(
-            "POST",
-            new apigateway.LambdaIntegration(saveFeedbackFunction),
-            authMethodOptions
-        );
+        feedback.addMethod("POST", apiIntegration, authMethodOptions);
 
         // Global stats endpoint (public - no auth)
         const stats = api.root.addResource("stats");
-
-        // GET /stats (public)
-        stats.addMethod(
-            "GET",
-            new apigateway.LambdaIntegration(getGlobalStatsFunction)
-            // No authMethodOptions - this is a public endpoint
-        );
+        stats.addMethod("GET", apiIntegration);
 
         // Create public website with CloudFront distribution
         this.website = new PublicWebsite(this, "PublicWebsite", {

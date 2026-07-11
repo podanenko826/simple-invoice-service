@@ -45,6 +45,8 @@ export class Passwordless extends Construct {
             magicLink: {
                 /** The e-mail address you want to use as the FROM address of the magic link e-mails */
                 emailFromAddress: string;
+                /** AWS region where SES identity is verified (defaults to stack region) */
+                sesRegion?: string;
                 kmsKeyProps?: cdk.aws_kms.KeyProps;
                 secretsTableProps?: TableProps;
                 secondsUntilExpiry?: cdk.Duration;
@@ -71,19 +73,6 @@ export class Passwordless extends Construct {
         }
     ) {
         super(scope, id);
-
-        // Create SSM Parameter for SendGrid API key with placeholder
-        // Update the parameter value manually in AWS Console after deployment
-        const sendgridApiKeyParameter = new cdk.aws_ssm.StringParameter(
-            this,
-            `SendGridApiKeyParameter${id}`,
-            {
-                parameterName: `/${props.projectNamePrefix}/sendgrid-api-key`,
-                description: `[${props.environment}] SendGrid API key for magic link emails - UPDATE THIS VALUE`,
-                stringValue: "PLACEHOLDER_UPDATE_IN_AWS_CONSOLE",
-                tier: cdk.aws_ssm.ParameterTier.STANDARD,
-            }
-        );
 
         // Create KMS key for signing magic links
         const key = new cdk.aws_kms.Key(this, `KmsKeyRsa${id}`, {
@@ -143,6 +132,9 @@ export class Passwordless extends Construct {
             );
         }
 
+        // Determine SES region (defaults to stack region)
+        const sesRegion = props.magicLink.sesRegion ?? cdk.Aws.REGION;
+
         // Create Auth Challenge Lambda environment
         const createAuthChallengeEnvironment: Record<string, string> = {
             ALLOWED_ORIGINS: props.allowedOrigins.join(","),
@@ -150,7 +142,7 @@ export class Passwordless extends Construct {
             LOG_LEVEL: props.logLevel ?? "INFO",
             MAGIC_LINK_ENABLED: "TRUE",
             EMAIL_FROM_ADDRESS: props.magicLink.emailFromAddress,
-            SENDGRID_API_KEY_PARAMETER_NAME: sendgridApiKeyParameter.parameterName,
+            SES_REGION: sesRegion,
             KMS_KEY_ID:
                 this.kmsKey instanceof cdk.aws_kms.Alias
                     ? this.kmsKey.aliasName
@@ -192,7 +184,17 @@ export class Passwordless extends Construct {
 
         // Grant permissions to Create Auth Challenge Lambda
         this.secretsTable.grantReadWriteData(this.createAuthChallengeFn);
-        sendgridApiKeyParameter.grantRead(this.createAuthChallengeFn);
+
+        // Grant SES SendEmail permission
+        this.createAuthChallengeFn.addToRolePolicy(
+            new cdk.aws_iam.PolicyStatement({
+                effect: cdk.aws_iam.Effect.ALLOW,
+                actions: ["ses:SendEmail", "ses:SendRawEmail"],
+                resources: [
+                    `arn:${cdk.Aws.PARTITION}:ses:${sesRegion}:${cdk.Aws.ACCOUNT_ID}:identity/*`,
+                ],
+            })
+        );
 
         // Grant KMS signing permissions
         if ((this.kmsKey as cdk.aws_kms.IAlias).aliasName) {

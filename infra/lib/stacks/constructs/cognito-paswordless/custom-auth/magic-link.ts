@@ -18,9 +18,9 @@ import {
     GetPublicKeyCommand,
 } from "@aws-sdk/client-kms";
 import {
-    SSMClient,
-    GetParameterCommand,
-} from "@aws-sdk/client-ssm";
+    SESClient,
+    SendEmailCommand,
+} from "@aws-sdk/client-ses";
 import {
     logger,
     UserFacingError,
@@ -40,13 +40,13 @@ let config = {
         .map((url) => url.origin),
     /** The e-mail address that Magic Links will be sent from */
     emailFromAddress: process.env.EMAIL_FROM_ADDRESS,
-    /** SSM Parameter name for SendGrid API Key */
-    sendgridApiKeyParameterName: process.env.SENDGRID_API_KEY_PARAMETER_NAME,
+    /** AWS region for SES (defaults to current Lambda region) */
+    sesRegion: process.env.SES_REGION,
     /** KMS Key ID to use for generating Magic Links (signatures) */
     kmsKeyId: process.env.KMS_KEY_ID,
     /** The name of the DynamoDB table where (hashes of) Magic Links will be stored */
     dynamodbSecretsTableName: process.env.DYNAMODB_SECRETS_TABLE,
-    /** Function that will send the actual Magic Link e-mails. Override this to e.g. use another e-mail provider instead of SendGrid */
+    /** Function that will send the actual Magic Link e-mails via AWS SES */
     emailSender: sendEmailWithLink,
     /** A salt to use for storing hashes of magic links in the DynamoDB table */
     salt: process.env.STACK_ID,
@@ -72,14 +72,12 @@ export function configure(update?: Partial<typeof config>) {
 
 const publicKeys: Record<string, ReturnType<typeof createPublicKey>> = {};
 const kms = new KMSClient({});
-const ssm = new SSMClient({});
+const ses = new SESClient({ region: process.env.SES_REGION || undefined });
 const ddbDocClient = DynamoDBDocumentClient.from(new DynamoDBClient({}), {
     marshallOptions: {
         removeUndefinedValues: true,
     },
 });
-
-let sendgridApiKey: string | undefined;
 
 export async function addChallengeToEvent(
     event: CreateAuthChallengeTriggerEvent
@@ -138,28 +136,6 @@ async function createEmailContent({
     };
 }
 
-async function getSendGridApiKey(): Promise<string> {
-    if (sendgridApiKey) {
-        return sendgridApiKey;
-    }
-
-    const parameterName = requireConfig("sendgridApiKeyParameterName");
-    const response = await ssm.send(
-        new GetParameterCommand({
-            Name: parameterName,
-            WithDecryption: true,
-        })
-    );
-
-    if (!response.Parameter?.Value) {
-        throw new Error("SendGrid API key not found in SSM Parameter Store");
-    }
-
-    const apiKey = response.Parameter.Value;
-    sendgridApiKey = apiKey;
-    return apiKey;
-}
-
 async function sendEmailWithLink({
     emailAddress,
     content,
@@ -172,39 +148,35 @@ async function sendEmailWithLink({
     };
     userAttributes: { [name: string]: string };
 }) {
-    const apiKey = await getSendGridApiKey();
     const fromAddress = requireConfig("emailFromAddress");
 
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            personalizations: [
-                {
-                    to: [{ email: emailAddress }],
+    try {
+        await ses.send(
+            new SendEmailCommand({
+                Source: fromAddress,
+                Destination: {
+                    ToAddresses: [emailAddress],
                 },
-            ],
-            from: { email: fromAddress },
-            subject: content.subject,
-            content: [
-                {
-                    type: "text/plain",
-                    value: content.text,
+                Message: {
+                    Subject: {
+                        Data: content.subject,
+                        Charset: "UTF-8",
+                    },
+                    Body: {
+                        Text: {
+                            Data: content.text,
+                            Charset: "UTF-8",
+                        },
+                        Html: {
+                            Data: content.html,
+                            Charset: "UTF-8",
+                        },
+                    },
                 },
-                {
-                    type: "text/html",
-                    value: content.html,
-                },
-            ],
-        }),
-    });
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        logger.error("SendGrid API error:", errorText);
+            })
+        );
+    } catch (err) {
+        logger.error("SES SendEmail error:", err);
         throw new UserFacingError("Failed to send magic link email");
     }
 }
